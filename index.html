@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>⟦𝐅𝐎𝐔𝐑 ⨯ 𝐒𝐄𝐕𝐄𝐍⟧</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', 'Fira Code', monospace;
+            background: radial-gradient(circle at 20% 30%, #0a0a0f, #000000);
+            color: #ff1133;
+            padding-bottom: 80px;
+            text-shadow: 0 0 3px rgba(255, 17, 51, 0.5);
+        }
+        @keyframes discoRedBlue { 0% { border-color: #ff1133; box-shadow: 0 0 5px #ff1133; } 50% { border-color: #0088ff; box-shadow: 0 0 15px #0088ff; } 100% { border-color: #ff1133; box-shadow: 0 0 5px #ff1133; } }
+        @keyframes discoPurpleGreen { 0% { border-color: #aa44ff; box-shadow: 0 0 5px #aa44ff; } 50% { border-color: #44ff44; box-shadow: 0 0 15px #44ff44; } 100% { border-color: #aa44ff; box-shadow: 0 0 5px #aa44ff; } }
+        @keyframes discoRainbow { 0% { text-shadow: 0 0 2px #ff1133; } 25% { text-shadow: 0 0 8px #0088ff; } 50% { text-shadow: 0 0 8px #aa44ff; } 75% { text-shadow: 0 0 8px #44ff44; } 100% { text-shadow: 0 0 2px #ff1133; } }
+        @keyframes discoGrid { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(255, 17, 51, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 150, 255, 0.08) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            z-index: 0;
+            animation: discoGrid 1.5s infinite;
+        }
+        .header {
+            background: #000000;
+            border-bottom: 2px solid #ff1133;
+            padding: 0.8rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: discoRedBlue 1s infinite;
+        }
+        .title-glow {
+            font-size: 1.3rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            background: linear-gradient(135deg, #ff1133, #0088ff, #aa44ff, #44ff44, #ff1133);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: discoRainbow 1.5s infinite;
+        }
+        .menu-btn {
+            background: transparent;
+            border: 1px solid #ff1133;
+            color: #ff1133;
+            font-size: 1.5rem;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: discoPurpleGreen 1.2s infinite;
+        }
+        .menu-btn:hover { background: #ff1133; color: #000; box-shadow: 0 0 12px #ff1133; }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -240px;
+            width: 220px;
+            height: 100%;
+            background: #0a0a0f;
+            border-right: 2px solid #ff1133;
+            z-index: 200;
+            transition: left 0.3s;
+            padding: 1.5rem 0.8rem;
+            overflow-y: auto;
+        }
+        .sidebar.open { left: 0; }
+        .sidebar a {
+            display: block;
+            color: #ff1133;
+            text-decoration: none;
+            padding: 6px 10px;
+            margin: 5px 0;
+            background: rgba(30, 10, 15, 0.7);
+            border: 1px solid #ff1133;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.8rem;
+            animation: discoRainbow 2s infinite;
+        }
+        .sidebar a:hover { background: #ff1133; color: #000; box-shadow: 0 0 10px #ff1133; }
+        .close-sidebar {
+            background: transparent;
+            border: 1px solid #ff1133;
+            color: #ff1133;
+            font-size: 1.2rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            z-index: 150;
+            display: none;
+        }
+        .overlay.active { display: block; }
+        .page {
+            display: none;
+            padding: 1rem;
+            animation: fadeIn 0.3s;
+            position: relative;
+            z-index: 1;
+        }
+        .page.active-page { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+        .welcome-card, .broadcast-card, .dashboard-card {
+            background: rgba(20, 10, 15, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid #ff1133;
+            border-radius: 16px;
+            padding: 1.2rem;
+            margin: 1rem 0;
+            text-align: center;
+            animation: discoPurpleGreen 1s infinite;
+        }
+        .welcome-card h1 {
+            font-size: 1.3rem;
+            background: linear-gradient(120deg, #ff1133, #aa44ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.8rem;
+            animation: discoRainbow 0.8s infinite;
+        }
+        .welcome-card p { color: #ff7799; font-size: 0.75rem; margin-top: 0.4rem; }
+        .broadcast-card { background: rgba(30, 10, 15, 0.9); border-left: 6px solid #44ff44; animation: discoRedBlue 0.8s infinite; }
+        .dashboard-card { background: rgba(0, 20, 30, 0.9); border: 2px solid #aa44ff; }
+        .video-grid { display: grid; gap: 1.5rem; }
+        .video-card {
+            background: rgba(10, 5, 10, 0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid #ff1133;
+            border-radius: 16px;
+            overflow: hidden;
+            animation: discoRedBlue 1.5s infinite;
+        }
+        .video-container { position: relative; width: 100%; background: black; }
+        .video-container video { width: 100%; max-height: 260px; background: black; display: block; }
+        .watermark {
+            position: absolute;
+            font-size: 0.45rem;
+            font-family: monospace;
+            color: rgba(255, 30, 70, 0.6);
+            text-shadow: 0 0 2px black;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 4px;
+            border-radius: 4px;
+            white-space: pre;
+            line-height: 1.1;
+            pointer-events: none;
+            z-index: 5;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .watermark-tl { top: 5px; left: 5px; }
+        .watermark-tr { top: 5px; right: 5px; }
+        .watermark-bl { bottom: 5px; left: 5px; }
+        .watermark-br { bottom: 5px; right: 5px; }
+        .video-info { padding: 0.8rem; }
+        .video-title { font-weight: bold; font-size: 1rem; color: #ff5577; }
+        .video-description { font-size: 0.75rem; color: #aaffaa; margin-top: 4px; margin-bottom: 8px; font-style: italic; }
+        .category-badge {
+            display: inline-block;
+            background: #330011;
+            border: 1px solid #ff1133;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 8px;
+            color: #ff1133;
+        }
+        .video-actions button {
+            background: #111;
+            border: 1px solid #ff1133;
+            color: #ff1133;
+            padding: 4px 10px;
+            border-radius: 8px;
+            margin-right: 6px;
+            margin-top: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: 0.2s;
+        }
+        .video-actions button:hover { background: #ff1133; color: #000; box-shadow: 0 0 8px #44ff44; }
+        .video-date { font-size: 0.65rem; color: #ff5577; margin-top: 6px; }
+        .comments-section { margin-top: 12px; padding: 8px; background: rgba(0,0,0,0.5); border-radius: 12px; }
+        .comment-input-area input { background: #1a0a0f; border: 1px solid #ff1133; color: #ff7799; padding: 5px; border-radius: 8px; font-size: 0.7rem; }
+        .comment-input-area button { background: #330011; border: 1px solid #ff1133; color: #ff1133; padding: 5px 10px; font-size: 0.7rem; }
+        .comment-item { background: rgba(30, 10, 20, 0.7); border-left: 2px solid #ff1133; margin: 5px 0; padding: 5px 8px; font-size: 0.7rem; }
+        .comment-name { color: #ff5577; font-weight: bold; }
+        .delete-video-btn, .delete-comment-btn, .edit-video-btn { background: transparent; border: 1px solid #ff6666; color: #ff6666; font-size: 0.65rem; }
+        .edit-video-btn { border-color: #44ff44; color: #44ff44; }
+        .stats-row { display: flex; gap: 0.5rem; justify-content: space-between; flex-wrap: wrap; margin: 1rem 0; }
+        .stat-card { background: #1a0a0f; border: 1px solid #ff1133; border-radius: 8px; padding: 0.8rem; text-align: center; flex: 1; animation: discoPurpleGreen 1.2s infinite; }
+        .stat-number { font-size: 1.5rem; font-weight: bold; color: #44ff44; }
+        .upload-area input, .upload-area select, .upload-area textarea {
+            background: #1a0a0f;
+            border: 1px solid #ff1133;
+            color: #ff7799;
+            border-radius: 8px;
+            padding: 8px;
+            width: 100%;
+            margin: 5px 0;
+        }
+        .upload-area textarea { min-height: 60px; resize: vertical; }
+        .upload-btn {
+            background: #330011;
+            border: 1px solid #ff1133;
+            color: #ff1133;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+        }
+        .upload-btn:hover { background: #ff1133; color: #000; box-shadow: 0 0 10px #44ff44; }
+        .whatsapp-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #128C7E;
+            border: 1px solid #ff1133;
+            border-radius: 40px;
+            padding: 6px 14px;
+            display: flex;
+            gap: 6px;
+            font-weight: bold;
+            z-index: 99;
+            cursor: pointer;
+            color: white;
+            font-size: 0.75rem;
+            animation: discoRedBlue 0.8s infinite;
+        }
+        footer { text-align: center; padding: 1rem; font-size: 0.65rem; color: #ff5577; opacity: 0.6; }
+        .rules-list, .safety-list { background: rgba(20, 5, 10, 0.7); border: 1px solid #ff1133; border-radius: 16px; padding: 1rem; font-size: 0.7rem; animation: discoPurpleGreen 1.3s infinite; }
+        h2 { color: #ff1133; text-transform: uppercase; letter-spacing: 2px; font-size: 1.1rem; margin-bottom: 0.5rem; animation: discoRainbow 1s infinite; }
+        button, input, select, textarea { font-family: monospace; }
+        .broadcast-edit { display: flex; gap: 8px; margin-top: 10px; }
+        .broadcast-edit input { flex: 3; padding: 6px; font-size: 0.7rem; }
+        .edit-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a0a0f;
+            border: 2px solid #44ff44;
+            border-radius: 16px;
+            padding: 1rem;
+            z-index: 300;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            width: 90%;
+            max-width: 300px;
+        }
+        .edit-modal input, .edit-modal textarea { width: 100%; padding: 8px; }
+        .edit-modal button { margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="title-glow">⟦𝐅𝐎𝐔𝐑 ⨯ 𝐒𝐄𝐕𝐄𝐍⟧</div>
+    <button class="menu-btn" id="menuBtn">☰</button>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <button class="close-sidebar" id="closeSidebar">✕</button>
+    <a href="#" data-page="home">🏠 HOME</a>
+    <a href="#" data-page="dangerous">💀 DANGEROUS</a>
+    <a href="#" data-page="funny">😅 FUNNY</a>
+    <a href="#" data-page="shocking">😨 SHOCKING</a>
+    <a href="#" data-page="watchrisk">⚠️ WATCH AT YOUR RISK</a>
+    <a href="#" data-page="safety">🛡️ SAFETY</a>
+    <a href="#" data-page="rules">⚖️ RULES</a>
+    <a href="#" data-page="owner" id="ownerPageLink" style="display:none;">👑 OWNER DASHBOARD</a>
+    <a href="#" id="ownerLoginSidebar">👑 OWNER LOGIN</a>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="edit-modal">
+    <h3 style="color:#44ff44;">✏️ EDIT VIDEO</h3>
+    <input type="text" id="editTitle" placeholder="Title">
+    <textarea id="editDescription" placeholder="Description" rows="3"></textarea>
+    <button id="saveEditBtn" style="background:#330011; border:1px solid #44ff44; color:#44ff44;">💾 SAVE</button>
+    <button id="closeEditBtn" style="background:#330011; border:1px solid #ff1133; color:#ff1133;">❌ CANCEL</button>
+</div>
+
+<!-- HOME PAGE -->
+<div id="homePage" class="page active-page">
+    <div class="welcome-card">
+        <h1>⟦𝐅𝐎𝐔𝐑 ⨯ 𝐒𝐄𝐕𝐄𝐍⟧</h1>
+        <p>> SYSTEM ONLINE // BLOOD PROTOCOL ACTIVE</p>
+        <p>> WATCH, COMMENT, LIKE, DOWNLOAD</p>
+        <p>> VIDEOS PERSIST UNTIL OWNER DELETION</p>
+        <p style="color:#ff1133;">⚠️ WARNING: INTENSE CONTENT. DISCRETION ADVISED.</p>
+    </div>
+    <!-- Daily visitor counter (resets daily) -->
+    <div class="broadcast-card" style="background: rgba(0,0,0,0.5); border-left-color: #ff1133;">
+        <p>👥 <strong>TODAY'S VISITORS:</strong> <span id="dailyVisitors" style="font-size:1.5rem; font-weight:bold;">0</span></p>
+        <p style="font-size:0.6rem;">📅 Resets every day at midnight</p>
+    </div>
+    <!-- Broadcast message from owner -->
+    <div id="broadcastContainer" class="broadcast-card" style="display:none;">
+        <div id="broadcastMessage"></div>
+    </div>
+    <div class="video-grid" id="homeVideoGrid">Loading video streams...</div>
+</div>
+
+<!-- OWNER DASHBOARD PAGE -->
+<div id="ownerPage" class="page">
+    <div class="dashboard-card">
+        <h3>🔐 OWNER TERMINAL</h3>
+        <div class="stats-row">
+            <div class="stat-card">👥 TODAY'S VISITS: <div class="stat-number" id="totalVisits">0</div></div>
+            <div class="stat-card">🟢 ACTIVE NOW: <div class="stat-number" id="activeNow">0</div></div>
+            <div class="stat-card">📹 VIDEOS: <div class="stat-number" id="videoCount">0</div></div>
+        </div>
+        <!-- Broadcast sender -->
+        <div class="upload-area" style="margin-top: 1rem;">
+            <h3>📡 BROADCAST MESSAGE</h3>
+            <textarea id="broadcastInput" placeholder="Type message for everyone on Home page..." rows="2"></textarea>
+            <button class="upload-btn" id="sendBroadcastBtn">📢 SEND TO HOMEPAGE</button>
+            <div id="broadcastStatus"></div>
+        </div>
+        <!-- Video upload -->
+        <div class="upload-area" style="margin-top: 1rem;">
+            <h3>🎥 UPLOAD VIDEO</h3>
+            <input type="text" id="videoTitle" placeholder="TITLE">
+            <textarea id="videoDescription" placeholder="DESCRIPTION (what the video is about)"></textarea>
+            <select id="videoCategory">
+                <option value="Dangerous">💀 DANGEROUS</option>
+                <option value="Funny">😅 FUNNY</option>
+                <option value="Shocking">😨 SHOCKING</option>
+                <option value="Watch at your risk">⚠️ WATCH AT YOUR RISK</option>
+            </select>
+            <input type="file" id="videoUpload" accept="video/*">
+            <button class="upload-btn" id="publishBtn">📤 UPLOAD</button>
+            <div id="uploadStatus"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Pages -->
+<div id="dangerousPage" class="page"><h2>💀 DANGEROUS</h2><div class="video-grid" id="dangerousGrid"></div></div>
+<div id="funnyPage" class="page"><h2>😅 FUNNY</h2><div class="video-grid" id="funnyGrid"></div></div>
+<div id="shockingPage" class="page"><h2>😨 SHOCKING</h2><div class="video-grid" id="shockingGrid"></div></div>
+<div id="watchriskPage" class="page"><h2>⚠️ WATCH AT YOUR RISK</h2><div class="video-grid" id="watchriskGrid"></div></div>
+<div id="safetyPage" class="page"><h2>🛡️ SAFETY PROTOCOLS</h2><div class="safety-list"><ul><li>1. RESPECT ALL USERS</li><li>2. NO PERSONAL INFO SHARING</li><li>3. STOP WATCHING IF UNCOMFORTABLE</li><li>4. REPORT ISSUES VIA WHATSAPP</li><li>5. MATURE CONTENT – NOT FOR ALL AGES</li><li>6. DISCRETION STRONGLY ADVISED</li><li>7. NO HARASSMENT</li><li>8. CIVIL CONVERSATIONS</li><li>9. NO HATE SPEECH</li><li>10. ILLEGAL CONTENT? CONTACT AUTHORITIES</li><li>11. OWNER RESERVES RIGHT TO REMOVE</li><li>12. NO HACKING</li><li>13. PARENTAL PERMISSION UNDER 13</li><li>14. USE SECURE CONNECTION</li><li>15. NO REDISTRIBUTION</li><li>16. DOWNLOADS TRACKED</li><li>17. COMMENTS ANONYMOUS</li><li>18. IF UNSAFE – CLOSE BROWSER</li><li>19. NO IMPERSONATION</li><li>20. ENJOY RESPONSIBLY</li></ul></div></div>
+<div id="rulesPage" class="page"><h2>⚖️ RULES</h2><div class="rules-list"><ul><li>NO REPORTING – INTERNAL MODERATION</li><li>NO LOOSE GAMES / SPAM</li><li>NO HARASSMENT</li><li>NO ILLEGAL UPLOADS</li><li>NO IMPERSONATION</li><li>NO EXTERNAL LINKS</li><li>NO HATE SPEECH</li><li>NO DOXXING</li><li>NO ADVERTISING</li><li>VIOLATION MAY LEAD TO BAN</li></ul></div></div>
+
+<footer>⟦𝐅𝐎𝐔𝐑 ⨯ 𝐒𝐄𝐕𝐄𝐍⟧ // BLOOD CYBER PLATFORM</footer>
+<div class="whatsapp-float" id="whatsappBtn">💬 WHATSAPP</div>
+
+<script>
+    // ========== 🔥 REPLACE WITH YOUR FIREBASE CONFIG ==========
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "YOUR_APP_ID"
+    };
+    // ===========================================================
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    let allVideos = [];
+    let isOwner = false;
+    let currentEditVideoId = null;
+
+    // Exact watermark as requested
+    const watermarkText = `╔☠︎═══☠︎╗\n𝐅𝐎𝐔𝐑 𝐒𝐄𝐕𝐄𝐍\n╚☠︎═══☠︎╝`;
+
+    // ---------- DAILY VISITOR COUNTER (resets at midnight) ----------
+    async function updateDailyVisitorCount() {
+        const today = new Date().toDateString(); // e.g., "Tue Jun 03 2026"
+        const counterRef = db.collection('dailyStats').doc('visitors');
+        const doc = await counterRef.get();
+        
+        let currentCount = 0;
+        let lastDate = null;
+        
+        if (doc.exists) {
+            lastDate = doc.data().date;
+            currentCount = doc.data().count || 0;
+        }
+        
+        if (lastDate !== today) {
+            // New day - reset counter
+            await counterRef.set({
+                date: today,
+                count: 1
+            });
+            currentCount = 1;
+        } else {
+            // Same day - increment
+            await counterRef.update({
+                count: firebase.firestore.FieldValue.increment(1)
+            });
+            currentCount = currentCount + 1;
+        }
+        
+        // Update display on homepage
+        document.getElementById('dailyVisitors').innerText = currentCount;
+        
+        // Also store for owner dashboard
+        if (isOwner) {
+            document.getElementById('totalVisits').innerText = currentCount;
+        }
+        return currentCount;
+    }
+    
+    async function getDailyVisitorCount() {
+        const today = new Date().toDateString();
+        const counterRef = db.collection('dailyStats').doc('visitors');
+        const doc = await counterRef.get();
+        if (doc.exists && doc.data().date === today) {
+            return doc.data().count || 0;
+        }
+        return 0;
+    }
+
+    // ---------- Broadcast functions ----------
+    async function sendBroadcast(message) {
+        if (!isOwner) { alert("Only owner can broadcast"); return; }
+        if (!message.trim()) { alert("Enter a message"); return; }
+        const expiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await db.collection('settings').doc('broadcast').set({
+            text: message.trim(),
+            expiry: firebase.firestore.Timestamp.fromDate(expiry)
+        });
+        document.getElementById('broadcastStatus').innerText = "Broadcast sent!";
+        setTimeout(() => document.getElementById('broadcastStatus').innerText = "", 3000);
+        await loadBroadcastOnHome();
+    }
+
+    async function deleteExpiredBroadcast() {
+        const broadcastDoc = await db.collection('settings').doc('broadcast').get();
+        if (broadcastDoc.exists) {
+            const data = broadcastDoc.data();
+            const expiry = data.expiry?.toDate().getTime();
+            if (expiry && expiry < Date.now()) await db.collection('settings').doc('broadcast').delete();
+        }
+    }
+
+    async function loadBroadcastOnHome() {
+        const broadcastDoc = await db.collection('settings').doc('broadcast').get();
+        const container = document.getElementById('broadcastContainer');
+        const msgDiv = document.getElementById('broadcastMessage');
+        if (broadcastDoc.exists && broadcastDoc.data().text && broadcastDoc.data().text.trim() !== "") {
+            const text = broadcastDoc.data().text;
+            const expiry = broadcastDoc.data().expiry?.toDate();
+            if (expiry && expiry > new Date()) {
+                container.style.display = "block";
+                msgDiv.innerHTML = `📡 <strong>BROADCAST:</strong> ${escapeHtml(text)} <span style="font-size:0.65rem;">(expires ${expiry.toLocaleDateString()})</span>`;
+            } else { container.style.display = "none"; await db.collection('settings').doc('broadcast').delete(); }
+        } else { container.style.display = "none"; }
+    }
+
+    // ---------- Sidebar ----------
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const closeSidebarBtn = document.getElementById('closeSidebar');
+    function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('active'); }
+    function closeSidebarFunc() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
+    menuBtn.onclick = openSidebar;
+    closeSidebarBtn.onclick = closeSidebarFunc;
+    overlay.onclick = closeSidebarFunc;
+
+    const pages = ['home', 'dangerous', 'funny', 'shocking', 'watchrisk', 'safety', 'rules', 'owner'];
+    function showPage(pageId) {
+        pages.forEach(p => { const el = document.getElementById(p + 'Page'); if(el) el.classList.remove('active-page'); });
+        document.getElementById(pageId + 'Page').classList.add('active-page');
+        closeSidebarFunc();
+        if (pageId !== 'home' && pageId !== 'safety' && pageId !== 'rules' && pageId !== 'owner') {
+            renderCategoryGrid(pageId);
+        } else if (pageId === 'home') { 
+            renderHomeGrid(); 
+            loadBroadcastOnHome();
+            updateDailyVisitorCount(); // update daily counter every time home page is shown
+        } else if (pageId === 'owner') {
+            if (isOwner) {
+                updateStatsUI();
+                loadVideos();
+            } else {
+                alert("You must login as owner first");
+                showPage('home');
+            }
+        }
+    }
+    document.querySelectorAll('.sidebar a[data-page]').forEach(link => link.addEventListener('click', (e) => { e.preventDefault(); showPage(link.dataset.page); }));
+
+    // Owner Login
+    document.getElementById('ownerLoginSidebar').addEventListener('click', () => {
+        const pwd = prompt("Enter owner password:");
+        if (pwd === "four seven") {
+            isOwner = true;
+            document.getElementById('ownerPageLink').style.display = "block";
+            alert("OWNER ACCESS GRANTED // BLOOD PROTOCOL ACTIVE");
+            if (document.getElementById('ownerPage').classList.contains('active-page')) {
+                updateStatsUI();
+            }
+            loadBroadcastOnHome();
+            renderHomeGrid();
+        } else alert("ACCESS DENIED");
+    });
+
+    // Send broadcast button
+    document.getElementById('sendBroadcastBtn')?.addEventListener('click', async () => {
+        const input = document.getElementById('broadcastInput');
+        await sendBroadcast(input.value);
+        input.value = '';
+    });
+
+    // Edit functions
+    function openEditModal(videoId, title, description) {
+        currentEditVideoId = videoId;
+        document.getElementById('editTitle').value = title;
+        document.getElementById('editDescription').value = description || '';
+        document.getElementById('editModal').style.display = 'flex';
+    }
+    document.getElementById('closeEditBtn').onclick = () => { document.getElementById('editModal').style.display = 'none'; currentEditVideoId = null; };
+    document.getElementById('saveEditBtn').onclick = async () => {
+        if (!currentEditVideoId) return;
+        const newTitle = document.getElementById('editTitle').value.trim();
+        const newDesc = document.getElementById('editDescription').value;
+        if (!newTitle) { alert("Title cannot be empty"); return; }
+        await db.collection('videos').doc(currentEditVideoId).update({
+            title: newTitle,
+            description: newDesc
+        });
+        document.getElementById('editModal').style.display = 'none';
+        await loadVideos();
+        currentEditVideoId = null;
+    };
+
+    // Watermark creator
+    function createVideoWithWatermark(videoUrl, videoId) {
+        const container = document.createElement('div');
+        container.className = 'video-container';
+        const video = document.createElement('video');
+        video.controls = true;
+        video.src = videoUrl;
+        video.setAttribute('onclick', `trackView('${videoId}')`);
+        const positions = ['tl', 'tr', 'bl', 'br'];
+        positions.forEach(pos => {
+            const wm = document.createElement('div');
+            wm.className = `watermark watermark-${pos}`;
+            wm.innerText = watermarkText;
+            container.appendChild(wm);
+        });
+        container.appendChild(video);
+        return container;
+    }
+
+    // Video rendering
+    async function renderVideosToGrid(containerId, videoArray) {
+        const grid = document.getElementById(containerId);
+        if (!grid) return;
+        if (!videoArray.length) { grid.innerHTML = '<div style="padding:2rem; text-align:center; color:#ff5577;">[ NO VIDEO STREAMS IN THIS CATEGORY ]</div>'; return; }
+        grid.innerHTML = '';
+        for (const video of videoArray) {
+            const card = document.createElement('div'); card.className = 'video-card';
+            const commentsId = `comments-${video.id}`;
+            const dateStr = video.timestamp ? new Date(video.timestamp.toDate()).toLocaleString() : "Unknown";
+            const deleteBtnHtml = isOwner ? `<button class="delete-video-btn" data-id="${video.id}">🗑️ DELETE</button>` : '';
+            const editBtnHtml = isOwner ? `<button class="edit-video-btn" data-id="${video.id}" data-title="${escapeHtml(video.title)}" data-desc="${escapeHtml(video.description || '')}">✏️ EDIT</button>` : '';
+            const descriptionHtml = video.description ? `<div class="video-description">📝 ${escapeHtml(video.description)}</div>` : '';
+            
+            const videoContainer = createVideoWithWatermark(video.videoUrl, video.id);
+            card.appendChild(videoContainer);
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'video-info';
+            infoDiv.innerHTML = `
+                <div class="video-title">${escapeHtml(video.title)} <span class="category-badge">${video.category || 'General'}</span></div>
+                ${descriptionHtml}
+                <div class="video-actions">
+                    <button class="like-btn" data-id="${video.id}">❤️ ${video.likes || 0}</button>
+                    <button class="download-btn" data-id="${video.id}">⬇️ ${video.downloads || 0}</button>
+                    <span>👁️ ${video.views || 0}</span>
+                    ${editBtnHtml}
+                    ${deleteBtnHtml}
+                </div>
+                <div class="video-date">📅 POSTED: ${dateStr}</div>
+                <div class="comments-section">
+                    <div class="comment-input-area">
+                        <input type="text" placeholder="NAME (OPT)" id="name-${video.id}" style="flex:1">
+                        <input type="text" placeholder="COMMENT" id="text-${video.id}" style="flex:2">
+                        <button class="comment-submit" data-id="${video.id}">💬 SEND</button>
+                    </div>
+                    <div id="${commentsId}" class="comment-thread"></div>
+                   </div>
+            `;
+            card.appendChild(infoDiv);
+            grid.appendChild(card);
+            
+            await loadCommentsTree(video.id, commentsId);
+            
+            const submitBtn = card.querySelector('.comment-submit');
+            submitBtn.addEventListener('click', async () => { 
+                const nameInput = document.getElementById(`name-${video.id}`); 
+                const textInput = document.getElementById(`text-${video.id}`); 
+                await addComment(video.id, null, nameInput.value, textInput.value); 
+                textInput.value = ''; 
+                nameInput.value = ''; 
+                await loadCommentsTree(video.id, commentsId); 
+            });
+            
+            if (isOwner) {
+                const delVideoBtn = card.querySelector('.delete-video-btn');
+                if(delVideoBtn) delVideoBtn.onclick = async () => { 
+                    if(confirm("DELETE VIDEO PERMANENTLY?")) { 
+                        await db.collection('videos').doc(video.id).delete(); 
+                        const storageRef = storage.refFromURL(video.videoUrl); 
+                        await storageRef.delete().catch(e=>console.log); 
+                        const commentsSnap = await db.collection('comments').where('videoId', '==', video.id).get(); 
+                        for(const doc of commentsSnap.docs) await db.collection('comments').doc(doc.id).delete(); 
+                        await loadVideos(); 
+                        if (document.getElementById('ownerPage').classList.contains('active-page')) updateStatsUI();
+                    } 
+                };
+                const editVideoBtn = card.querySelector('.edit-video-btn');
+                if(editVideoBtn) editVideoBtn.onclick = () => { 
+                    openEditModal(video.id, video.title, video.description || ''); 
+                };
+            }
+        }
+        document.querySelectorAll(`#${containerId} .like-btn`).forEach(btn => btn.addEventListener('click', () => likeVideo(btn.dataset.id)));
+        document.querySelectorAll(`#${containerId} .download-btn`).forEach(btn => btn.addEventListener('click', () => downloadVideo(btn.dataset.id)));
+    }
+
+    async function loadCommentsTree(videoId, containerId) {
+        const snapshot = await db.collection('comments').where('videoId', '==', videoId).orderBy('timestamp', 'asc').get();
+        const commentsMap = new Map(); const roots = [];
+        snapshot.forEach(doc => { const c = { id: doc.id, ...doc.data(), replies: [] }; commentsMap.set(c.id, c); if(c.parentId) { if(commentsMap.has(c.parentId)) commentsMap.get(c.parentId).replies.push(c); else roots.push(c); } else roots.push(c); });
+        function renderCommentTree(comments, level) { let html = '<ul style="list-style:none; margin-left:0;">'; for(const c of comments) { const canDelete = isOwner ? `<button class="delete-comment-btn" data-id="${c.id}">🗑️</button>` : ''; html += `<li class="comment-item" style="margin-left: ${level * 20}px"><span class="comment-name">${escapeHtml(c.name || 'Anonymous')}</span> <span class="comment-time">${new Date(c.timestamp?.toDate()).toLocaleString()}</span> <button class="reply-btn" data-id="${c.id}" data-video="${videoId}">↩️</button> ${canDelete}<div>${escapeHtml(c.text)}</div><div class="reply-form-${c.id}" style="display:none; margin-top:5px;"><input type="text" placeholder="Name" id="replyName-${c.id}" style="width:80px;"><br><input type="text" placeholder="Reply" id="replyText-${c.id}" style="width:160px;"><button class="submit-reply" data-parent="${c.id}" data-video="${videoId}">Send</button></div></li>`; if(c.replies && c.replies.length) html += renderCommentTree(c.replies, level+1); } html += '</ul>'; return html; }
+        const container = document.getElementById(containerId); if(!container) return;
+        container.innerHTML = renderCommentTree(roots, 0);
+        document.querySelectorAll(`#${containerId} .reply-btn`).forEach(btn => btn.onclick = () => { const parentId = btn.dataset.id; const formDiv = document.querySelector(`.reply-form-${parentId}`); if(formDiv) formDiv.style.display = formDiv.style.display === 'none' ? 'block' : 'none'; });
+        document.querySelectorAll(`#${containerId} .submit-reply`).forEach(btn => btn.onclick = async () => { const parentId = btn.dataset.parent; const videoId = btn.dataset.video; const name = document.getElementById(`replyName-${parentId}`).value; const text = document.getElementById(`replyText-${parentId}`).value; if(!text.trim()) return; await addComment(videoId, parentId, name, text); await loadCommentsTree(videoId, containerId); });
+        if(isOwner) { document.querySelectorAll(`#${containerId} .delete-comment-btn`).forEach(btn => btn.onclick = async () => { if(confirm("Delete comment and replies?")) { await deleteCommentTree(btn.dataset.id); await loadCommentsTree(videoId, containerId); } }); }
+    }
+
+    async function deleteCommentTree(commentId) {
+        const replies = await db.collection('comments').where('parentId', '==', commentId).get();
+        for (const doc of replies.docs) await deleteCommentTree(doc.id);
+        await db.collection('comments').doc(commentId).delete();
+    }
+
+    async function addComment(videoId, parentId, name, text) {
+        if (!text.trim()) return;
+        await db.collection('comments').add({
+            videoId, parentId: parentId || null,
+            name: name.trim() || 'Anonymous', text: text.trim(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+
+    async function renderHomeGrid() { await renderVideosToGrid('homeVideoGrid', allVideos); }
+    async function renderCategoryGrid(category) {
+        let filtered = [];
+        if (category === 'dangerous') filtered = allVideos.filter(v => v.category === 'Dangerous');
+        else if (category === 'funny') filtered = allVideos.filter(v => v.category === 'Funny');
+        else if (category === 'shocking') filtered = allVideos.filter(v => v.category === 'Shocking');
+        else if (category === 'watchrisk') filtered = allVideos.filter(v => v.category === 'Watch at your risk');
+        else filtered = allVideos;
+        const gridId = category + 'Grid';
+        await renderVideosToGrid(gridId, filtered);
+    }
+
+    async function loadVideos() {
+        const snapshot = await db.collection('videos').orderBy('timestamp', 'desc').get();
+        allVideos = [];
+        snapshot.forEach(doc => allVideos.push({ id: doc.id, ...doc.data() }));
+        await renderHomeGrid();
+        await renderCategoryGrid('dangerous');
+        await renderCategoryGrid('funny');
+        await renderCategoryGrid('shocking');
+        await renderCategoryGrid('watchrisk');
+        if (isOwner) document.getElementById('videoCount').innerText = allVideos.length;
+    }
+
+    window.trackView = async (videoId) => {
+        await db.collection('videos').doc(videoId).update({ views: firebase.firestore.FieldValue.increment(1) });
+        await loadVideos();
+    };
+    async function likeVideo(videoId) {
+        await db.collection('videos').doc(videoId).update({ likes: firebase.firestore.FieldValue.increment(1) });
+        await loadVideos();
+    }
+    async function downloadVideo(videoId) {
+        const video = allVideos.find(v => v.id === videoId);
+        if (!video) return;
+        await db.collection('videos').doc(videoId).update({ downloads: firebase.firestore.FieldValue.increment(1) });
+        const a = document.createElement('a'); a.href = video.videoUrl; a.download = ''; a.click();
+        await loadVideos();
+    }
+
+    async function uploadVideo(file, title, description, category) {
+        const statusDiv = document.getElementById('uploadStatus');
+        statusDiv.innerText = 'UPLINK ACTIVE...';
+        const ref = storage.ref().child(`videos/${Date.now()}_${file.name}`);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+        statusDiv.innerText = 'SAVING...';
+        await db.collection('videos').add({
+            title, description, category, videoUrl: url, views: 0, likes: 0, downloads: 0,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        statusDiv.innerText = 'COMPLETE.';
+        setTimeout(() => statusDiv.innerText = '', 2000);
+        await loadVideos();
+        if (isOwner) updateStatsUI();
+    }
+
+    function setupUpload() {
+        const btn = document.getElementById('publishBtn');
+        const fileInput = document.getElementById('videoUpload');
+        const titleInput = document.getElementById('videoTitle');
+        const descInput = document.getElementById('videoDescription');
+        const catSelect = document.getElementById('videoCategory');
+        btn.onclick = async () => {
+            if (!isOwner) { alert("OWNER ONLY"); return; }
+            const file = fileInput.files[0];
+            const title = titleInput.value.trim();
+            const description = descInput.value.trim();
+            if (!file || !title) { alert("SELECT FILE & TITLE"); return; }
+            await uploadVideo(file, title, description, catSelect.value);
+            fileInput.value = ''; titleInput.value = ''; descInput.value = '';
+        };
+    }
+
+    async function updateStatsUI() {
+        if (!isOwner) return;
+        const dailyCount = await getDailyVisitorCount();
+        document.getElementById('totalVisits').innerText = dailyCount;
+        document.getElementById('activeNow').innerText = Math.floor(Math.random() * 60) + 10;
+        document.getElementById('videoCount').innerText = allVideos.length;
+    }
+
+    function setupWhatsApp() {
+        const number = '060225117';
+        const msg = 'FourSeven inquiry';
+        const url = `https://wa.me/27${number}?text=${encodeURIComponent(msg)}`;
+        document.getElementById('whatsappBtn').onclick = () => window.open(url);
+    }
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+    async function init() {
+        setupUpload();
+        setupWhatsApp();
+        await deleteExpiredBroadcast();
+        await updateDailyVisitorCount();  // this also displays on home page
+        await loadBroadcastOnHome();
+        await loadVideos();
+        // Check for date change every minute to reset counter visually
+        let lastDate = new Date().toDateString();
+        setInterval(async () => {
+            const now = new Date().toDateString();
+            if (now !== lastDate) {
+                lastDate = now;
+                await updateDailyVisitorCount();
+            }
+            await deleteExpiredBroadcast();
+            await loadBroadcastOnHome();
+        }, 60000);
+    }
+    init();
+</script>
+</body>
+</html>
