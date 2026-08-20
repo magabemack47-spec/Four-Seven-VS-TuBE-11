@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FS G.A SiTe // APP & GAME BUILDER</title>
     
-    <!-- Firebase SDK (MODULE VERSION) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
@@ -30,11 +29,10 @@
             setDoc,
             serverTimestamp,
             updateDoc,
-            onSnapshot,
             increment,
             writeBatch,
             orderBy,
-            limit
+            onSnapshot
         } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -45,7 +43,7 @@
             storageBucket: "four-seven-vs-tube-11.firebasestorage.app",
             messagingSenderId: "212207205795",
             appId: "1:212207205795:web:148dee64635684c89f6e16",
-            measurementId: "G-FM5GD19JMH"
+            measurementId: "G-DWVEQVWV3L"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -184,6 +182,46 @@
         }
         .verification-banner.active { display: block; }
         
+        .broadcast-banner {
+            background: #0a1a2a;
+            border: 1px solid #2a6aaa;
+            color: #4a8aff;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            display: none;
+            box-shadow: 0 0 30px rgba(0, 80, 255, 0.15), inset 0 0 30px rgba(0, 80, 255, 0.05);
+            border-radius: 4px;
+            animation: pulseBlue 2s infinite;
+            position: relative;
+        }
+        .broadcast-banner.active { display: block; }
+        .broadcast-banner .broadcast-msg { color: #8ab4ff; font-size: 0.9rem; font-weight: 600; text-shadow: 0 0 20px rgba(0, 80, 255, 0.2); }
+        .broadcast-banner .broadcast-time { color: #4a6a8a; font-size: 0.6rem; margin-left: 12px; }
+        .broadcast-banner .btn-seen {
+            background: transparent;
+            border: 1px solid #2a6aaa;
+            color: #4a8aff;
+            padding: 4px 16px;
+            margin-left: 14px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            border-radius: 3px;
+        }
+        .broadcast-banner .btn-seen:hover { background: #0a1a3a; border-color: #4a8aff; box-shadow: 0 0 30px rgba(0, 80, 255, 0.2); }
+        
+        @keyframes pulseBlue {
+            0% { box-shadow: 0 0 20px rgba(0, 80, 255, 0.1), inset 0 0 20px rgba(0, 80, 255, 0.02); }
+            50% { box-shadow: 0 0 40px rgba(0, 80, 255, 0.2), inset 0 0 40px rgba(0, 80, 255, 0.05); }
+            100% { box-shadow: 0 0 20px rgba(0, 80, 255, 0.1), inset 0 0 20px rgba(0, 80, 255, 0.02); }
+        }
+        
         .nav-menu {
             display: flex;
             flex-wrap: wrap;
@@ -237,7 +275,7 @@
         }
         .editor-section textarea {
             width: 100%;
-            height: 340px;
+            height: 380px;
             background: #0a0303;
             border: 1px solid #2a1212;
             color: #b0a0b0;
@@ -253,28 +291,6 @@
             box-shadow: 0 0 30px rgba(0, 80, 255, 0.08);
             outline: none;
         }
-        .editor-section .code-tabs {
-            display: flex;
-            gap: 2px;
-            margin-bottom: 6px;
-        }
-        .editor-section .code-tabs button {
-            background: #0d0505;
-            border: 1px solid #1f0a0a;
-            color: #6a5a5a;
-            padding: 5px 16px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .editor-section .code-tabs button.active-tab {
-            background: #1a0808;
-            border-color: #4a1515;
-            color: #c0b0b0;
-            box-shadow: 0 0 15px rgba(0, 80, 255, 0.05);
-        }
-        .editor-section .code-tabs button:hover { background: #1a0808; color: #d0d0d0; }
         
         .snippet-bar {
             display: flex;
@@ -317,7 +333,7 @@
         }
         .preview-frame {
             flex: 1;
-            min-height: 340px;
+            min-height: 380px;
             background: #0a0303;
             border: 1px solid #1a0808;
             overflow: hidden;
@@ -326,7 +342,7 @@
         .preview-frame iframe {
             width: 100%;
             height: 100%;
-            min-height: 340px;
+            min-height: 380px;
             border: none;
             background: #fff;
         }
@@ -351,6 +367,21 @@
             transition: 0.2s;
         }
         .preview-controls .btn-preview:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.08); }
+        .preview-controls .btn-fullscreen {
+            background: #0a1a3a;
+            border: 1px solid #2a6aaa;
+            color: #4a8aff;
+            padding: 8px 18px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            letter-spacing: 2px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 0 20px rgba(0, 80, 255, 0.05);
+        }
+        .preview-controls .btn-fullscreen:hover { background: #0a2a5a; border-color: #4a8aff; box-shadow: 0 0 30px rgba(0, 80, 255, 0.15); }
         .preview-controls .btn-download {
             background: #1a0808;
             border: 1px solid #4a1a1a;
@@ -385,6 +416,109 @@
             transition: 0.2s;
         }
         .preview-controls .btn-share:hover { background: #0a1a3a; border-color: #2a6aaa; color: #6a9aff; box-shadow: 0 0 25px rgba(0, 80, 255, 0.15); }
+        
+        /* ============================================================ */
+        /* FULLSCREEN PREVIEW OVERLAY */
+        /* ============================================================ */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0505;
+            z-index: 999999;
+            display: none;
+            flex-direction: column;
+            padding: 10px;
+            box-shadow: 0 0 60px rgba(0, 80, 255, 0.1);
+        }
+        .fullscreen-overlay.active {
+            display: flex;
+        }
+        .fullscreen-overlay .fs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: #0a0303;
+            border-bottom: 1px solid #2a0f0f;
+            flex-shrink: 0;
+        }
+        .fullscreen-overlay .fs-header .fs-title {
+            color: #4a8aff;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(0, 80, 255, 0.2);
+        }
+        .fullscreen-overlay .fs-header .fs-title span { color: #4a3a3a; }
+        .fullscreen-overlay .fs-header .fs-close {
+            background: #1a0808;
+            border: 1px solid #4a1515;
+            color: #b0a0a0;
+            padding: 6px 18px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .fullscreen-overlay .fs-header .fs-close:hover {
+            background: #2a0f0f;
+            border-color: #6a2222;
+            color: #e0d0d0;
+            box-shadow: 0 0 25px rgba(0, 80, 255, 0.1);
+        }
+        .fullscreen-overlay .fs-body {
+            flex: 1;
+            background: #0a0303;
+            border: 1px solid #1a0808;
+            overflow: hidden;
+            position: relative;
+        }
+        .fullscreen-overlay .fs-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+        .fullscreen-overlay .fs-footer {
+            display: flex;
+            justify-content: center;
+            padding: 8px 16px;
+            background: #0a0303;
+            border-top: 1px solid #1a0808;
+            flex-shrink: 0;
+            gap: 12px;
+        }
+        .fullscreen-overlay .fs-footer .fs-btn {
+            background: #1a0808;
+            border: 1px solid #3a1515;
+            color: #b0a0a0;
+            padding: 6px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .fullscreen-overlay .fs-footer .fs-btn:hover {
+            background: #2a0f0f;
+            border-color: #6a2222;
+            color: #e0d0d0;
+        }
+        .fullscreen-overlay .fs-footer .fs-btn-blue {
+            border-color: #2a6aaa;
+            color: #4a8aff;
+        }
+        .fullscreen-overlay .fs-footer .fs-btn-blue:hover {
+            background: #0a1a3a;
+            border-color: #4a8aff;
+            box-shadow: 0 0 30px rgba(0, 80, 255, 0.1);
+        }
         
         .projects-list {
             display: grid;
@@ -430,24 +564,69 @@
         .project-card .card-actions .btn-delete { border-color: #3a1515; color: #6a2a2a; }
         .project-card .card-actions .btn-delete:hover { border-color: #8f2222; color: #b02b2b; }
         
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 16px;
-            margin: 15px 0 25px;
+        /* ============================================================ */
+        /* DASHBOARD - USER ACTIVITY (NO STATS) */
+        /* ============================================================ */
+        .dashboard-title {
+            color: #4a8aff;
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(0, 80, 255, 0.2);
+            border-bottom: 1px solid #2a0f0f;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
         }
-        .stat-card {
-            background: #0d0505;
-            border: 1px solid #2a0f0f;
-            padding: 18px 12px;
-            text-align: center;
-            transition: 0.3s;
+        .dashboard-title span { color: #4a3a3a; font-size: 0.6rem; letter-spacing: 2px; }
+        
+        .user-list-container {
+            background: #080202;
+            border: 1px solid #1f0a0a;
+            padding: 14px;
+            margin-top: 12px;
             box-shadow: 0 0 20px rgba(0, 50, 200, 0.02);
         }
-        .stat-card:hover { border-color: #2a5a8a; box-shadow: 0 0 35px rgba(0, 80, 255, 0.06); }
-        .stat-card .label { font-size: 0.6rem; letter-spacing: 2px; color: #6a3a3a; text-transform: uppercase; }
-        .stat-card .value { font-size: 2rem; font-weight: 700; color: #b02b2b; text-shadow: 0 0 15px #3a0000, 0 0 30px rgba(0, 80, 255, 0.1); margin: 6px 0 2px; }
-        .stat-card .sub { font-size: 0.6rem; color: #4a2a2a; letter-spacing: 1px; }
+        .user-list-container .section-title {
+            color: #4a8aff;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            text-shadow: 0 0 20px rgba(0, 80, 255, 0.1);
+            border-bottom: 1px solid #1a0808;
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .user-list-container .section-title span { color: #4a2a2a; font-size: 0.6rem; }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+        .user-table th {
+            text-align: left;
+            color: #4a3a3a;
+            padding: 8px 6px;
+            border-bottom: 1px solid #1a0808;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.55rem;
+        }
+        .user-table td {
+            padding: 6px;
+            border-bottom: 1px solid #0f0505;
+            color: #a09090;
+        }
+        .user-table .user-online { color: #3a8a3a; }
+        .user-table .user-offline { color: #4a3a3a; }
+        .user-table .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
+        .user-table .status-dot.online { background: #3a8a3a; animation: blink 1.2s infinite; }
+        .user-table .status-dot.offline { background: #4a3a3a; }
+        .user-table .user-email { color: #b0a0a0; }
+        .user-table .user-time { color: #4a6a6a; font-size: 0.6rem; }
+        .user-table .user-action { color: #6a8a6a; font-size: 0.6rem; }
         
         .system-log {
             background: #080202;
@@ -464,6 +643,7 @@
         .system-log .line .time { color: #4a3a3a; margin-right: 14px; }
         .system-log .line .highlight { color: #b02b2b; }
         .system-log .line .blue-glow { color: #4a8aff; text-shadow: 0 0 20px rgba(0, 100, 255, 0.3); }
+        .system-log .line .user-action { color: #6a8a6a; }
         
         .rules-grid {
             display: grid;
@@ -609,7 +789,7 @@
         
         .owner-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 12px;
             margin: 15px 0;
         }
@@ -626,7 +806,7 @@
         .owner-stat-card .sub { font-size: 0.55rem; color: #3a2a2a; }
         
         .live-users-list {
-            max-height: 120px;
+            max-height: 150px;
             overflow-y: auto;
             background: #0a0303;
             border: 1px solid #1a0808;
@@ -636,12 +816,13 @@
         .live-users-list .user-entry {
             color: #6a8a6a;
             font-size: 0.7rem;
-            padding: 2px 0;
+            padding: 3px 0;
             border-bottom: 1px solid #0f0505;
             display: flex;
             justify-content: space-between;
         }
         .live-users-list .user-entry .status-dot { color: #3a8a3a; animation: blink 1.2s infinite; }
+        .live-users-list .user-entry .user-email { color: #8a8a8a; }
         
         .broadcast-area {
             margin-top: 20px;
@@ -827,7 +1008,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 999999;
+            z-index: 999998;
         }
         .fsga-modal-content {
             background: #0a0303;
@@ -890,6 +1071,12 @@
 
         <div class="maintenance-banner" id="maintenanceBanner">SYSTEM IN MAINTENANCE MODE // SOME FEATURES LIMITED</div>
 
+        <div class="broadcast-banner" id="broadcastBanner">
+            <span class="broadcast-msg" id="broadcastMessage">MESSAGE HERE</span>
+            <span class="broadcast-time" id="broadcastTime"></span>
+            <button class="btn-seen" id="broadcastSeenBtn">SEEN</button>
+        </div>
+
         <div class="verification-banner" id="verificationBanner">
             VERIFICATION EMAIL SENT. PLEASE CHECK YOUR INBOX AND SPAM FOLDER.
             <button id="resendVerificationBtn" style="background:transparent;border:1px solid #6a4a1a;color:#b08a4a;padding:4px 12px;margin-left:10px;cursor:pointer;font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:1px;">RESEND EMAIL</button>
@@ -929,11 +1116,6 @@
             <div class="builder-layout">
                 <div class="editor-section blue-glow">
                     <span class="section-label">CODE EDITOR</span>
-                    <div class="code-tabs">
-                        <button class="active-tab" data-editor="html">HTML</button>
-                        <button data-editor="css">CSS</button>
-                        <button data-editor="js">JS</button>
-                    </div>
                     <textarea id="codeEditor" spellcheck="false"></textarea>
                     
                     <div class="save-section">
@@ -952,6 +1134,7 @@
                     <div class="preview-controls">
                         <button class="btn-preview" id="runBtn">RUN</button>
                         <button class="btn-preview" id="resetBtn">RESET</button>
+                        <button class="btn-fullscreen" id="fullscreenBtn">FULLSCREEN</button>
                         <button class="btn-share" id="shareBtn">SHARE</button>
                         <button class="btn-download" id="downloadBtn">DOWNLOAD APK</button>
                     </div>
@@ -961,36 +1144,56 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- PANEL: DASHBOARD -->
+        <!-- FULLSCREEN OVERLAY -->
+        <!-- ============================================================ -->
+        <div class="fullscreen-overlay" id="fullscreenOverlay">
+            <div class="fs-header">
+                <div class="fs-title">FS G.A <span>SiTe</span> // FULLSCREEN PREVIEW</div>
+                <button class="fs-close" id="fsCloseBtn">EXIT</button>
+            </div>
+            <div class="fs-body">
+                <iframe id="fsIframe" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
+            </div>
+            <div class="fs-footer">
+                <button class="fs-btn fs-btn-blue" id="fsRefreshBtn">REFRESH</button>
+                <button class="fs-btn" id="fsResetBtn">RESET</button>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- PANEL: DASHBOARD - USER ACTIVITY (NO STATS) -->
         <!-- ============================================================ -->
         <div id="panel-dashboard" class="panel">
-            <div class="stats-grid">
-                <div class="stat-card blue-glow">
-                    <div class="label">TODAY VISITORS</div>
-                    <div class="value" id="statVisitors">0</div>
-                    <div class="sub">RESETS AT MIDNIGHT</div>
+            <div class="dashboard-title">
+                ⟦ USER ACTIVITY <span>// LIVE SESSIONS</span> ⟧
+            </div>
+
+            <div class="user-list-container blue-glow">
+                <div class="section-title">
+                    <span>⟦ ACTIVE USERS ⟧</span>
+                    <span id="userCountLabel">0 USERS</span>
                 </div>
-                <div class="stat-card blue-glow">
-                    <div class="label">ACTIVE NOW</div>
-                    <div class="value" id="statActive">0</div>
-                    <div class="sub">SESSION LIVE</div>
-                </div>
-                <div class="stat-card blue-glow">
-                    <div class="label">APPS BUILT</div>
-                    <div class="value" id="statApps">0</div>
-                    <div class="sub">TOTAL DOWNLOADS</div>
-                </div>
-                <div class="stat-card blue-glow">
-                    <div class="label">TOTAL USERS</div>
-                    <div class="value" id="statUsers">0</div>
-                    <div class="sub">REGISTERED ACCOUNTS</div>
-                </div>
-                <div class="stat-card blue-glow">
-                    <div class="label">SYSTEM STATUS</div>
-                    <div class="value" style="font-size:1.1rem; color:#4a8aff; text-shadow: 0 0 30px rgba(0,80,255,0.3);" id="statStatus">STANDBY</div>
-                    <div class="sub">AWAITING COMMAND</div>
+                <div style="overflow-x:auto;">
+                    <table class="user-table" id="userTable">
+                        <thead>
+                            <tr>
+                                <th>STATUS</th>
+                                <th>USER</th>
+                                <th>LAST ACTIVE</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align:center;color:#4a2a2a;padding:15px 0;">
+                                    NO USERS ACTIVE
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+
             <div class="system-log" id="systemLog">
                 <div class="line"><span class="time">[00:00:01]</span> SYSTEM INIT // BLOOD PROTOCOL LOADED</div>
                 <div class="line"><span class="time">[00:00:05]</span> FS G.A SiTe BUILDER ACTIVE</div>
@@ -1050,7 +1253,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- PANEL: OWNER -->
+        <!-- PANEL: OWNER - ALL STATS HERE (ONLY OWNER SEES) -->
         <!-- ============================================================ -->
         <div id="panel-owner" class="panel">
             <div class="owner-lock" id="ownerLock">
@@ -1077,6 +1280,21 @@
                         <div class="sub">REGISTERED</div>
                     </div>
                     <div class="owner-stat-card blue-glow">
+                        <div class="label">ACTIVE NOW</div>
+                        <div class="value" id="ownerActiveSessions">0</div>
+                        <div class="sub">ONLINE</div>
+                    </div>
+                    <div class="owner-stat-card blue-glow">
+                        <div class="label">TOTAL VISITS</div>
+                        <div class="value" id="ownerTotalVisits">0</div>
+                        <div class="sub">WEBSITE</div>
+                    </div>
+                    <div class="owner-stat-card blue-glow">
+                        <div class="label">APPS BUILT</div>
+                        <div class="value" id="ownerAppBuilds">0</div>
+                        <div class="sub">TOTAL APPS</div>
+                    </div>
+                    <div class="owner-stat-card blue-glow">
                         <div class="label">TOTAL PROJECTS</div>
                         <div class="value" id="ownerTotalProjects">0</div>
                         <div class="sub">SAVED</div>
@@ -1086,11 +1304,13 @@
                         <div class="value" id="ownerTotalDownloads">0</div>
                         <div class="sub">APK + HTML</div>
                     </div>
-                    <div class="owner-stat-card blue-glow">
-                        <div class="label">ACTIVE SESSIONS</div>
-                        <div class="value" id="ownerActiveSessions">0</div>
-                        <div class="sub">CURRENT USERS</div>
-                    </div>
+                </div>
+
+                <div class="control-card blue-glow" style="margin-bottom:18px; border-color: #2a6aaa;">
+                    <span class="ctrl-label" style="color:#4a8aff;">⟦ BROADCAST TO ALL USERS ⟧</span>
+                    <textarea id="ownerBroadcastText" placeholder="ENTER BROADCAST MESSAGE ..." style="min-height:60px; border-color:#2a4a7a;">WELCOME TO FS G.A SiTe! Build your apps and games here.</textarea>
+                    <button class="btn-owner btn-blue" id="ownerSendBroadcastBtn" style="margin-top:6px;">SEND BROADCAST</button>
+                    <div id="broadcastStatus" style="color:#4a6a8a; font-size:0.6rem; margin-top:6px; letter-spacing:1px;">NO ACTIVE BROADCAST</div>
                 </div>
 
                 <div class="control-card blue-glow" style="margin-bottom:18px;">
@@ -1144,15 +1364,9 @@
                 </div>
 
                 <div class="broadcast-area">
-                    <div style="color:#4a8aff; font-size:0.7rem; letter-spacing:2px; margin-bottom:6px; text-shadow: 0 0 30px rgba(0,80,255,0.1);">BROADCAST TO ALL USERS</div>
-                    <textarea id="ownerBroadcastText" placeholder="ENTER BROADCAST MESSAGE ...">SYSTEM ALERT: MAINTENANCE AT 02:00 UTC</textarea>
-                    <button class="btn-broadcast" id="ownerSendBroadcast">SEND BROADCAST</button>
-                    
-                    <div style="margin-top:12px;">
-                        <span style="color:#4a3a3a; font-size:0.55rem; letter-spacing:2px;">BROADCAST HISTORY</span>
-                        <div class="broadcast-history" id="broadcastHistory">
-                            <div style="color:#4a2a2a; font-size:0.6rem; padding:4px 0;">NO BROADCASTS YET</div>
-                        </div>
+                    <div style="color:#4a3a3a; font-size:0.55rem; letter-spacing:2px;">BROADCAST HISTORY</div>
+                    <div class="broadcast-history" id="broadcastHistory">
+                        <div style="color:#4a2a2a; font-size:0.6rem; padding:4px 0;">NO BROADCASTS YET</div>
                     </div>
                 </div>
 
@@ -1164,18 +1378,12 @@
         </div>
 
         <div class="sys-footer">
-            FS G.A SiTe // BLOOD PROTOCOL // BLUE PROTOCOL ACTIVE // APP & GAME BUILDER v5.0
+            FS G.A SiTe // BLOOD PROTOCOL // BLUE PROTOCOL ACTIVE // APP & GAME BUILDER v6.0
         </div>
 
     </div>
 
-    <!-- ============================================================ -->
-    <!-- FULL APPLICATION LOGIC -->
-    <!-- ============================================================ -->
     <script type="module">
-        // ============================================================
-        // IMPORTS
-        // ============================================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
         import { 
@@ -1184,8 +1392,7 @@
             signInWithEmailAndPassword, 
             signOut, 
             onAuthStateChanged,
-            sendEmailVerification,
-            sendPasswordResetEmail
+            sendEmailVerification
         } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
         import {
             getFirestore,
@@ -1200,11 +1407,10 @@
             setDoc,
             serverTimestamp,
             updateDoc,
-            onSnapshot,
             increment,
             writeBatch,
             orderBy,
-            limit
+            onSnapshot
         } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1215,7 +1421,7 @@
             storageBucket: "four-seven-vs-tube-11.firebasestorage.app",
             messagingSenderId: "212207205795",
             appId: "1:212207205795:web:148dee64635684c89f6e16",
-            measurementId: "G-FM5GD19JMH"
+            measurementId: "G-DWVEQVWV3L"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -1223,9 +1429,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // ============================================================
         // DOM REFS
-        // ============================================================
         const emailInput = document.getElementById('emailInput');
         const passwordInput = document.getElementById('passwordInput');
         const signInBtn = document.getElementById('signInBtn');
@@ -1237,6 +1441,7 @@
         const previewFrame = document.getElementById('previewFrame');
         const runBtn = document.getElementById('runBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const shareBtn = document.getElementById('shareBtn');
         const downloadStatus = document.getElementById('downloadStatus');
@@ -1246,15 +1451,23 @@
         const exportZipBtn = document.getElementById('exportZipBtn');
         const projectsContainer = document.getElementById('projectsContainer');
 
+        // Fullscreen Elements
+        const fullscreenOverlay = document.getElementById('fullscreenOverlay');
+        const fsIframe = document.getElementById('fsIframe');
+        const fsCloseBtn = document.getElementById('fsCloseBtn');
+        const fsRefreshBtn = document.getElementById('fsRefreshBtn');
+        const fsResetBtn = document.getElementById('fsResetBtn');
+
+        // Dashboard
+        const userTableBody = document.getElementById('userTableBody');
+        const userCountLabel = document.getElementById('userCountLabel');
         const systemLog = document.getElementById('systemLog');
-        const statVisitors = document.getElementById('statVisitors');
-        const statActive = document.getElementById('statActive');
-        const statApps = document.getElementById('statApps');
-        const statUsers = document.getElementById('statUsers');
-        const statStatus = document.getElementById('statStatus');
-        const maintenanceBanner = document.getElementById('maintenanceBanner');
-        const verificationBanner = document.getElementById('verificationBanner');
-        const resendVerificationBtn = document.getElementById('resendVerificationBtn');
+
+        const broadcastBanner = document.getElementById('broadcastBanner');
+        const broadcastMessage = document.getElementById('broadcastMessage');
+        const broadcastTime = document.getElementById('broadcastTime');
+        const broadcastSeenBtn = document.getElementById('broadcastSeenBtn');
+        const broadcastStatus = document.getElementById('broadcastStatus');
 
         const ownerPasswordInput = document.getElementById('ownerPasswordInput');
         const ownerUnlockBtn = document.getElementById('ownerUnlockBtn');
@@ -1265,6 +1478,8 @@
         const ownerTotalProjects = document.getElementById('ownerTotalProjects');
         const ownerTotalDownloads = document.getElementById('ownerTotalDownloads');
         const ownerActiveSessions = document.getElementById('ownerActiveSessions');
+        const ownerTotalVisits = document.getElementById('ownerTotalVisits');
+        const ownerAppBuilds = document.getElementById('ownerAppBuilds');
         const liveUsersList = document.getElementById('liveUsersList');
         const ownerUserEmail = document.getElementById('ownerUserEmail');
         const ownerUserRole = document.getElementById('ownerUserRole');
@@ -1284,15 +1499,14 @@
         const ownerGenerateReport = document.getElementById('ownerGenerateReport');
         const ownerResetData = document.getElementById('ownerResetData');
         const ownerBroadcastText = document.getElementById('ownerBroadcastText');
-        const ownerSendBroadcast = document.getElementById('ownerSendBroadcast');
+        const ownerSendBroadcastBtn = document.getElementById('ownerSendBroadcastBtn');
         const broadcastHistory = document.getElementById('broadcastHistory');
+        const verificationBanner = document.getElementById('verificationBanner');
+        const resendVerificationBtn = document.getElementById('resendVerificationBtn');
+        const statStatus = document.getElementById('statStatus');
 
-        // ============================================================
         // STATE
-        // ============================================================
         let currentUser = null;
-        let currentEditor = 'html';
-        let appBuildCount = 0;
         let currentProjectId = null;
         let allProjects = [];
         let ownerUnlocked = false;
@@ -1301,25 +1515,24 @@
         let totalProjectsCount = 0;
         let totalDownloadsCount = 0;
         let activeSessions = 0;
-        let systemMode = 'normal';
+        let totalVisitsCount = 0;
+        let totalAppBuilds = 0;
         let currentAppId = null;
         let isEmailVerified = false;
+        let appBuildCount = 0;
+        let currentBroadcastId = null;
 
-        // ============================================================
         // SNIPPETS
-        // ============================================================
         const snippets = {
-            'game-loop': `// GAME LOOP\nfunction update() {\n  // Update game logic here\n}\n\nfunction draw() {\n  // Draw game here\n}\n\nfunction gameLoop() {\n  update();\n  draw();\n  requestAnimationFrame(gameLoop);\n}\n\ngameLoop();`,
-            'api-call': `// API CALL\nasync function fetchData() {\n  try {\n    const response = await fetch('https://api.example.com/data');\n    const data = await response.json();\n    console.log(data);\n  } catch (error) {\n    console.error('Error:', error);\n  }\n}\n\nfetchData();`,
-            'canvas': `// CANVAS SETUP\nconst canvas = document.getElementById('canvas');\nconst ctx = canvas.getContext('2d');\nctx.fillStyle = '#ff0000';\nctx.fillRect(50, 50, 100, 100);`,
-            'form': `// FORM HANDLING\ndocument.getElementById('myForm').addEventListener('submit', function(e) {\n  e.preventDefault();\n  const input = document.getElementById('myInput').value;\n  console.log('Submitted:', input);\n});`,
-            'animation': `// ANIMATION\nlet position = 0;\nlet direction = 1;\n\nfunction animate() {\n  position += 2 * direction;\n  if (position > 300 || position < 0) direction *= -1;\n  const box = document.getElementById('box');\n  if (box) box.style.transform = 'translateX(' + position + 'px)';\n  requestAnimationFrame(animate);\n}\n\nanimate();`,
-            'localstorage': `// LOCAL STORAGE\nlocalStorage.setItem('key', 'value');\nconst data = localStorage.getItem('key');\nconsole.log(data);\nlocalStorage.removeItem('key');`
+            'game-loop': `<!-- GAME LOOP -->\n<canvas id="game" width="800" height="600"></canvas>\n<script>\nconst canvas = document.getElementById('game');\nif (canvas) {\n  const ctx = canvas.getContext('2d');\n  let x = 200, y = 200;\n  function gameLoop() {\n    ctx.clearRect(0, 0, 800, 600);\n    ctx.fillStyle = '#0f0';\n    ctx.fillRect(x, y, 20, 20);\n    requestAnimationFrame(gameLoop);\n  }\n  gameLoop();\n}\n<\/script>`,
+            'api-call': `<!-- API CALL -->\n<button id="fetchBtn">FETCH DATA</button>\n<div id="result"></div>\n<script>\ndocument.getElementById('fetchBtn').addEventListener('click', async function() {\n  try {\n    const response = await fetch('https://api.github.com/users/octocat');\n    const data = await response.json();\n    document.getElementById('result').innerHTML = '<p>Name: ' + data.name + '</p>';\n  } catch (error) {\n    document.getElementById('result').innerHTML = '<p>Error: ' + error.message + '</p>';\n  }\n});\n<\/script>`,
+            'canvas': `<!-- CANVAS DRAWING -->\n<canvas id="myCanvas" width="800" height="500"></canvas>\n<script>\nconst canvas = document.getElementById('myCanvas');\nif (canvas) {\n  const ctx = canvas.getContext('2d');\n  ctx.fillStyle = '#ff0000';\n  ctx.fillRect(50, 50, 100, 100);\n  ctx.fillStyle = '#00ff00';\n  ctx.beginPath();\n  ctx.arc(300, 150, 50, 0, Math.PI * 2);\n  ctx.fill();\n}\n<\/script>`,
+            'form': `<!-- FORM -->\n<form id="myForm">\n  <input type="text" id="nameInput" placeholder="Your Name">\n  <button type="submit">SUBMIT</button>\n</form>\n<div id="greeting"></div>\n<script>\ndocument.getElementById('myForm').addEventListener('submit', function(e) {\n  e.preventDefault();\n  const name = document.getElementById('nameInput').value;\n  document.getElementById('greeting').innerHTML = '<h2>Hello, ' + name + '!</h2>';\n});\n<\/script>`,
+            'animation': `<!-- ANIMATION -->\n<div id="box" style="width:50px;height:50px;background:#ff0;position:relative;"></div>\n<script>\nlet pos = 0;\nlet dir = 1;\nfunction animate() {\n  pos += 2 * dir;\n  if (pos > 300 || pos < 0) dir *= -1;\n  const box = document.getElementById('box');\n  if (box) box.style.left = pos + 'px';\n  requestAnimationFrame(animate);\n}\nanimate();\n<\/script>`,
+            'localstorage': `<!-- LOCAL STORAGE -->\n<input type="text" id="saveInput" placeholder="Enter something">\n<button id="saveBtn">SAVE</button>\n<button id="loadBtn">LOAD</button>\n<div id="output"></div>\n<script>\ndocument.getElementById('saveBtn').addEventListener('click', function() {\n  const value = document.getElementById('saveInput').value;\n  localStorage.setItem('myData', value);\n  alert('Saved!');\n});\ndocument.getElementById('loadBtn').addEventListener('click', function() {\n  const data = localStorage.getItem('myData');\n  document.getElementById('output').innerHTML = '<p>Saved: ' + data + '</p>';\n});\n<\/script>`
         };
 
-        // ============================================================
         // HELPERS
-        // ============================================================
         function addLog(message, highlight = false, blue = false) {
             const time = new Date().toUTCString().split(' ')[4];
             const line = document.createElement('div');
@@ -1336,32 +1549,15 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        function getFullCode() {
-            const html = document.querySelector('[data-editor="html"]').classList.contains('active-tab') ?
-                codeEditor.value : '';
-            const css = document.querySelector('[data-editor="css"]').classList.contains('active-tab') ?
-                codeEditor.value : '';
-            const js = document.querySelector('[data-editor="js"]').classList.contains('active-tab') ?
-                codeEditor.value : '';
-            return { html, css, js };
+        function getCode() {
+            return codeEditor.value;
         }
 
         function getFullHtml() {
-            const { html, css, js } = getFullCode();
-            return `<!DOCTYPE html>
-        <html>
-        <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>${css}</style>
-        </head>
-        <body>${html}
-        <script>${js}<\/script>
-        </body>
-        </html>`;
+            const code = getCode();
+            return `<!DOCTYPE html>\n<html>\n<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>\n<body style="margin:0;padding:0;background:#000;">\n${code}\n</body>\n</html>`;
         }
 
-        // ============================================================
-        // APP ID GENERATION
-        // ============================================================
         function generateAppId() {
             const prefix = 'fsga';
             const random = Math.random().toString(36).substring(2, 8);
@@ -1382,6 +1578,288 @@
                 </div>
             `;
             document.body.appendChild(modal);
+        }
+
+        // ============================================================
+        // FULLSCREEN PREVIEW
+        // ============================================================
+        function openFullscreen() {
+            const fullHtml = getFullHtml();
+            const blob = new Blob([fullHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            fsIframe.src = url;
+            fullscreenOverlay.classList.add('active');
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+            addLog('FULLSCREEN PREVIEW OPENED', false, true);
+        }
+
+        function closeFullscreen() {
+            fullscreenOverlay.classList.remove('active');
+            fsIframe.src = 'about:blank';
+            addLog('FULLSCREEN PREVIEW CLOSED');
+        }
+
+        function refreshFullscreen() {
+            const fullHtml = getFullHtml();
+            const blob = new Blob([fullHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            fsIframe.src = url;
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+            addLog('FULLSCREEN REFRESHED', false, true);
+        }
+
+        function resetFullscreen() {
+            fsIframe.src = 'about:blank';
+            addLog('FULLSCREEN RESET');
+        }
+
+        // ESC key to exit fullscreen
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && fullscreenOverlay.classList.contains('active')) {
+                closeFullscreen();
+            }
+        });
+
+        // ============================================================
+        // BROADCAST SYSTEM
+        // ============================================================
+        function listenForBroadcasts() {
+            const q = query(collection(db, 'broadcasts'), orderBy('timestamp', 'desc'), limit(1));
+            
+            onSnapshot(q, (snapshot) => {
+                if (snapshot.empty) {
+                    broadcastBanner.classList.remove('active');
+                    broadcastStatus.textContent = 'NO ACTIVE BROADCAST';
+                    return;
+                }
+                
+                const doc = snapshot.docs[0];
+                const data = doc.data();
+                const broadcastId = doc.id;
+                
+                if (currentUser) {
+                    const seenRef = doc(db, 'users', currentUser.uid, 'seenBroadcasts', broadcastId);
+                    getDoc(seenRef).then((seenDoc) => {
+                        if (seenDoc.exists()) {
+                            broadcastBanner.classList.remove('active');
+                            broadcastStatus.textContent = 'BROADCAST SEEN';
+                            return;
+                        }
+                        showBroadcast(broadcastId, data);
+                    }).catch(() => {
+                        showBroadcast(broadcastId, data);
+                    });
+                } else {
+                    showBroadcast(broadcastId, data);
+                }
+            }, (error) => {
+                console.log('Broadcast listen error:', error);
+            });
+        }
+
+        function showBroadcast(broadcastId, data) {
+            currentBroadcastId = broadcastId;
+            broadcastMessage.textContent = data.message || 'No message';
+            const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : '';
+            broadcastTime.textContent = time;
+            broadcastBanner.classList.add('active');
+            broadcastStatus.textContent = 'BROADCAST ACTIVE';
+            broadcastBanner.dataset.broadcastId = broadcastId;
+        }
+
+        async function markBroadcastSeen() {
+            if (!currentUser) {
+                alert('Please sign in to dismiss this message.');
+                return;
+            }
+            const broadcastId = broadcastBanner.dataset.broadcastId;
+            if (!broadcastId) return;
+            try {
+                await setDoc(doc(db, 'users', currentUser.uid, 'seenBroadcasts', broadcastId), {
+                    seenAt: serverTimestamp()
+                });
+                broadcastBanner.classList.remove('active');
+                broadcastStatus.textContent = 'BROADCAST SEEN';
+                addLog('BROADCAST SEEN: ' + broadcastId, false, true);
+            } catch (error) {
+                console.error('Error marking broadcast seen:', error);
+                alert('Error: Could not dismiss message.');
+            }
+        }
+
+        async function sendBroadcast() {
+            const message = ownerBroadcastText.value.trim();
+            if (!message) {
+                alert('ENTER A MESSAGE');
+                return;
+            }
+            try {
+                await addDoc(collection(db, 'broadcasts'), {
+                    message: message,
+                    timestamp: serverTimestamp(),
+                    sender: 'Owner'
+                });
+                addLog('BROADCAST SENT: ' + message, false, true);
+                alert('BROADCAST SENT TO ALL USERS!');
+                loadBroadcastHistory();
+                ownerBroadcastText.value = '';
+            } catch (error) {
+                alert('ERROR SENDING BROADCAST: ' + error.message);
+                addLog('BROADCAST ERROR: ' + error.message, true);
+            }
+        }
+
+        async function loadBroadcastHistory() {
+            try {
+                const q = query(collection(db, 'broadcasts'), orderBy('timestamp', 'desc'), limit(20));
+                const snapshot = await getDocs(q);
+                broadcastHistory.innerHTML = '';
+                if (snapshot.empty) {
+                    broadcastHistory.innerHTML = '<div style="color:#4a2a2a; font-size:0.6rem; padding:4px 0;">NO BROADCASTS YET</div>';
+                    return;
+                }
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const entry = document.createElement('div');
+                    entry.className = 'bc-entry';
+                    const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'Unknown';
+                    entry.innerHTML = `<span class="bc-time">[${time}]</span><span class="bc-msg">${data.message}</span>`;
+                    broadcastHistory.appendChild(entry);
+                });
+            } catch (e) {
+                broadcastHistory.innerHTML = '<div style="color:#4a2a2a; font-size:0.6rem; padding:4px 0;">UNABLE TO LOAD HISTORY</div>';
+            }
+        }
+
+        // ============================================================
+        // DASHBOARD - USER ACTIVITY ONLY
+        // ============================================================
+        async function updateDashboard() {
+            try {
+                const usersSnap = await getDocs(collection(db, 'users'));
+                totalUsersCount = usersSnap.size;
+                ownerTotalUsers.textContent = totalUsersCount;
+                
+                const projectsSnap = await getDocs(collection(db, 'projects'));
+                totalProjectsCount = projectsSnap.size;
+                ownerTotalProjects.textContent = totalProjectsCount;
+                
+                const appsSnap = await getDocs(collection(db, 'apps'));
+                totalAppBuilds = appsSnap.size;
+                ownerAppBuilds.textContent = totalAppBuilds;
+                
+                const liveSnap = await getDocs(collection(db, 'liveUsers'));
+                activeSessions = liveSnap.size;
+                ownerActiveSessions.textContent = activeSessions;
+                
+                const visitsDoc = await getDoc(doc(db, 'stats', 'visits'));
+                if (visitsDoc.exists()) {
+                    totalVisitsCount = visitsDoc.data().count || 0;
+                } else {
+                    totalVisitsCount = 0;
+                    await setDoc(doc(db, 'stats', 'visits'), { count: 0 });
+                }
+                ownerTotalVisits.textContent = totalVisitsCount;
+                
+                await updateUserTable();
+                await loadLiveUsers();
+                
+            } catch (e) {
+                console.log('Dashboard update error:', e);
+            }
+        }
+
+        async function updateUserTable() {
+            try {
+                const q = query(collection(db, 'liveUsers'), orderBy('lastActive', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                userTableBody.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    userTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align:center;color:#4a2a2a;padding:15px 0;">
+                                NO USERS ACTIVE
+                            </td>
+                        </tr>
+                    `;
+                    userCountLabel.textContent = '0 USERS';
+                    return;
+                }
+                
+                let html = '';
+                let count = 0;
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    count++;
+                    const time = data.lastActive ? 
+                        new Date(data.lastActive.seconds * 1000).toLocaleString() : 
+                        'Unknown';
+                    html += `
+                        <tr>
+                            <td><span class="status-dot online"></span><span class="user-online">ONLINE</span></td>
+                            <td class="user-email">${data.email}</td>
+                            <td class="user-time">${time}</td>
+                            <td style="color:#4a6a6a;font-size:0.6rem;">ACTIVE</td>
+                        </tr>
+                    `;
+                });
+                
+                userTableBody.innerHTML = html;
+                userCountLabel.textContent = count + ' USERS';
+                
+            } catch (e) {
+                console.log('User table error:', e);
+                userTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align:center;color:#4a2a2a;padding:15px 0;">
+                            UNABLE TO LOAD USERS
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function loadLiveUsers() {
+            try {
+                const q = query(collection(db, 'liveUsers'), orderBy('lastActive', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    liveUsersList.innerHTML = '<div style="color:#4a2a2a; font-size:0.7rem; padding:4px 0;">NO ACTIVE USERS</div>';
+                    return;
+                }
+                
+                let html = '';
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    html += `
+                        <div class="user-entry">
+                            <span class="user-email">${data.email}</span>
+                            <span class="status-dot">● ONLINE</span>
+                        </div>
+                    `;
+                });
+                liveUsersList.innerHTML = html;
+                
+            } catch (e) {
+                liveUsersList.innerHTML = '<div style="color:#4a2a2a; font-size:0.7rem; padding:4px 0;">UNABLE TO LOAD USERS</div>';
+            }
+        }
+
+        async function incrementVisits() {
+            try {
+                const visitsRef = doc(db, 'stats', 'visits');
+                const docSnap = await getDoc(visitsRef);
+                if (docSnap.exists()) {
+                    await updateDoc(visitsRef, { count: increment(1) });
+                } else {
+                    await setDoc(visitsRef, { count: 1 });
+                }
+            } catch (e) {
+                console.log('Visit increment error:', e);
+            }
         }
 
         // ============================================================
@@ -1427,7 +1905,8 @@
                         '" target="_blank" style="color:#4a8aff; text-shadow: 0 0 20px rgba(0,80,255,0.3);">CLICK TO DOWNLOAD</a>';
                     downloadStatus.style.color = '#3a8a3a';
                     appBuildCount++;
-                    statApps.textContent = appBuildCount;
+                    totalAppBuilds++;
+                    ownerAppBuilds.textContent = totalAppBuilds;
                     totalDownloadsCount++;
                     ownerTotalDownloads.textContent = totalDownloadsCount;
                     addLog('APK BUILD SUCCESS', false, true);
@@ -1457,7 +1936,7 @@
         }
 
         // ============================================================
-        // EXPORT AS HTML
+        // EXPORT
         // ============================================================
         function exportAsHtml() {
             const fullHtml = getFullHtml();
@@ -1486,16 +1965,14 @@
         async function shareProject() {
             if (!currentUser) { alert('PLEASE SIGN IN TO SHARE'); return; }
             const name = projectNameInput.value.trim() || 'Untitled';
-            const { html, css, js } = getFullCode();
+            const code = getCode();
             
             try {
                 const docRef = await addDoc(collection(db, 'sharedProjects'), {
                     userId: currentUser.uid,
                     userEmail: currentUser.email,
                     name: name,
-                    html: html,
-                    css: css,
-                    js: js,
+                    code: code,
                     createdAt: serverTimestamp(),
                     views: 0
                 });
@@ -1511,7 +1988,7 @@
         }
 
         // ============================================================
-        // FIREBASE AUTH WITH EMAIL VERIFICATION
+        // AUTH
         // ============================================================
         async function signUp() {
             const email = emailInput.value.trim();
@@ -1522,17 +1999,12 @@
             
             try {
                 const userCred = await createUserWithEmailAndPassword(auth, email, password);
-                
-                // Send verification email
                 await sendEmailVerification(userCred.user);
-                
-                // Sign out until verified
                 await signOut(auth);
-                
                 verificationBanner.classList.add('active');
                 alert('ACCOUNT CREATED. Please check your email to verify your account.');
                 addLog('VERIFICATION EMAIL SENT TO: ' + email, false, true);
-                
+                await updateDashboard();
             } catch (error) {
                 alert('ERROR: ' + error.message);
                 addLog('SIGN UP ERROR: ' + error.message, true);
@@ -1540,7 +2012,7 @@
         }
 
         async function resendVerification() {
-            if (!currentUser) return;
+            if (!currentUser) { alert('PLEASE SIGN IN FIRST'); return; }
             try {
                 await sendEmailVerification(currentUser);
                 verificationBanner.classList.add('active');
@@ -1558,19 +2030,18 @@
             if (!email || !password) { alert('ENTER EMAIL AND PASSWORD'); return; }
             try {
                 const userCred = await signInWithEmailAndPassword(auth, email, password);
-                
-                // Check if email is verified
                 if (!userCred.user.emailVerified) {
                     alert('PLEASE VERIFY YOUR EMAIL FIRST. Check your inbox and spam folder.');
                     await signOut(auth);
+                    verificationBanner.classList.add('active');
                     return;
                 }
-                
                 addLog('USER SIGNED IN: ' + email, false, true);
-                activeSessions++;
-                ownerActiveSessions.textContent = activeSessions;
-                verificationBanner.classList.remove('active');
                 await setDoc(doc(db, 'liveUsers', email), { email, lastActive: serverTimestamp() });
+                await incrementVisits();
+                await updateDashboard();
+                verificationBanner.classList.remove('active');
+                setTimeout(listenForBroadcasts, 1000);
             } catch (error) {
                 alert('ERROR: ' + error.message);
                 addLog('SIGN IN ERROR: ' + error.message, true);
@@ -1583,10 +2054,9 @@
                     await deleteDoc(doc(db, 'liveUsers', currentUser.email));
                 }
                 await signOut(auth);
-                activeSessions--;
-                if (activeSessions < 0) activeSessions = 0;
-                ownerActiveSessions.textContent = activeSessions;
                 verificationBanner.classList.remove('active');
+                broadcastBanner.classList.remove('active');
+                await updateDashboard();
                 addLog('USER SIGNED OUT');
             } catch (error) {
                 alert('ERROR: ' + error.message);
@@ -1602,7 +2072,6 @@
                 isEmailVerified = user.emailVerified;
                 
                 if (!isEmailVerified) {
-                    // User signed in but email not verified
                     userStatus.textContent = ' UNVERIFIED - CHECK EMAIL';
                     userStatus.className = 'user-status unverified';
                     signInBtn.style.display = 'none';
@@ -1610,16 +2079,13 @@
                     signOutBtn.style.display = 'inline-block';
                     statStatus.textContent = 'PENDING VERIFICATION';
                     statStatus.style.color = '#8a6a3a';
-                    statStatus.style.textShadow = 'none';
                     verificationBanner.classList.add('active');
-                    // Disable features
                     document.querySelectorAll('.nav-item').forEach(el => el.classList.add('disabled'));
-                    document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share').forEach(el => el.disabled = true);
+                    document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen').forEach(el => el.disabled = true);
                     addLog('AUTH: USER NOT VERIFIED');
                     return;
                 }
                 
-                // Verified user
                 userStatus.textContent = ' SIGNED IN AS ' + user.email;
                 userStatus.className = 'user-status signed-in';
                 signInBtn.style.display = 'none';
@@ -1628,15 +2094,12 @@
                 statStatus.textContent = 'ACTIVE';
                 statStatus.style.color = '#4a8aff';
                 statStatus.style.textShadow = '0 0 30px rgba(0,80,255,0.3)';
-                statVisitors.textContent = Math.floor(Math.random() * 50) + 5;
-                statActive.textContent = Math.floor(Math.random() * 10) + 1;
                 verificationBanner.classList.remove('active');
-                // Enable features
                 document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('disabled'));
-                document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share').forEach(el => el.disabled = false);
+                document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen').forEach(el => el.disabled = false);
                 await loadProjects();
-                await updateTotalUsers();
-                await loadLiveUsers();
+                await updateDashboard();
+                listenForBroadcasts();
                 addLog('AUTH: USER VERIFIED AND SIGNED IN');
             } else {
                 currentUser = null;
@@ -1650,10 +2113,11 @@
                 statStatus.style.color = '#6a3a3a';
                 statStatus.style.textShadow = 'none';
                 verificationBanner.classList.remove('active');
-                // Disable features
+                broadcastBanner.classList.remove('active');
                 document.querySelectorAll('.nav-item').forEach(el => el.classList.add('disabled'));
-                document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share').forEach(el => el.disabled = true);
+                document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen').forEach(el => el.disabled = true);
                 projectsContainer.innerHTML = '<div style="color:#4a2a2a; font-size:0.8rem; padding:20px; text-align:center; width:100%;">SIGN IN TO SEE YOUR PROJECTS</div>';
+                await updateDashboard();
                 addLog('AUTH: USER SIGNED OUT');
             }
         });
@@ -1666,7 +2130,7 @@
             if (!currentUser.emailVerified) { alert('PLEASE VERIFY YOUR EMAIL FIRST.'); return; }
             
             const name = projectNameInput.value.trim() || 'Untitled Project';
-            const { html, css, js } = getFullCode();
+            const code = getCode();
             const appId = currentAppId || generateAppId();
             
             try {
@@ -1674,9 +2138,7 @@
                     userId: currentUser.uid,
                     userEmail: currentUser.email,
                     name: name,
-                    html: html,
-                    css: css,
-                    js: js,
+                    code: code,
                     appId: appId,
                     version: '1.0.0',
                     createdAt: serverTimestamp(),
@@ -1691,9 +2153,7 @@
                     appId: appId,
                     version: '1.0.0',
                     name: name,
-                    html: html,
-                    css: css,
-                    js: js,
+                    code: code,
                     lastUpdated: serverTimestamp(),
                     ownerId: currentUser.uid,
                     ownerEmail: currentUser.email
@@ -1703,7 +2163,7 @@
                 alert('PROJECT SAVED\nApp ID: ' + appId + '\nUse this in your app for updates.');
                 showAppIdModal(appId);
                 await loadProjects();
-                await updateTotalProjects();
+                await updateDashboard();
             } catch (error) {
                 alert('ERROR SAVING: ' + error.message);
                 addLog('SAVE ERROR: ' + error.message, true);
@@ -1778,13 +2238,10 @@
                 const docSnap = await getDoc(doc(db, 'projects', projectId));
                 if (!docSnap.exists()) { alert('PROJECT NOT FOUND'); return; }
                 const data = docSnap.data();
-                codeEditor.value = data.html || '';
+                codeEditor.value = data.code || '';
                 currentProjectId = projectId;
                 currentAppId = data.appId || null;
                 projectNameInput.value = data.name || 'Untitled';
-                document.querySelectorAll('.code-tabs button').forEach(b => b.classList.remove('active-tab'));
-                document.querySelector('[data-editor="html"]').classList.add('active-tab');
-                currentEditor = 'html';
                 await updateDoc(doc(db, 'projects', projectId), { views: increment(1) });
                 addLog('LOADED PROJECT: ' + data.name, false, true);
                 runPreview();
@@ -1808,7 +2265,7 @@
                 await deleteDoc(doc(db, 'projects', projectId));
                 addLog('PROJECT DELETED: ' + projectId);
                 await loadProjects();
-                await updateTotalProjects();
+                await updateDashboard();
                 if (currentProjectId === projectId) {
                     currentProjectId = null;
                     currentAppId = null;
@@ -1833,10 +2290,7 @@
                 const data = docSnap.data();
                 const appId = data.appId;
                 
-                if (!appId) { 
-                    alert('THIS PROJECT HAS NO APP ID. SAVE IT FIRST.'); 
-                    return; 
-                }
+                if (!appId) { alert('THIS PROJECT HAS NO APP ID. SAVE IT FIRST.'); return; }
                 
                 const currentVersion = data.version || '1.0.0';
                 const versionParts = currentVersion.split('.');
@@ -1853,9 +2307,7 @@
                     appId: appId,
                     version: newVersion,
                     name: data.name || 'My App',
-                    html: data.html || '',
-                    css: data.css || '',
-                    js: data.js || '',
+                    code: data.code || '',
                     lastUpdated: serverTimestamp(),
                     pushCount: (data.pushCount || 0) + 1,
                     ownerId: data.userId,
@@ -1864,60 +2316,9 @@
                 
                 addLog('UPDATE PUSHED: ' + data.name + ' v' + newVersion, false, true);
                 alert('UPDATE PUSHED\nVersion: ' + newVersion + '\nApp ID: ' + appId + '\nAll users with this App ID will get the update.');
-                
             } catch (error) {
                 alert('ERROR PUSHING UPDATE: ' + error.message);
                 addLog('PUSH UPDATE ERROR: ' + error.message, true);
-            }
-        }
-
-        // ============================================================
-        // STATS
-        // ============================================================
-        async function updateTotalUsers() {
-            try {
-                const snapshot = await getDocs(collection(db, 'users'));
-                totalUsersCount = snapshot.size;
-                statUsers.textContent = totalUsersCount;
-                ownerTotalUsers.textContent = totalUsersCount;
-            } catch (e) {
-                totalUsersCount = 0;
-                statUsers.textContent = '0';
-                ownerTotalUsers.textContent = '0';
-            }
-        }
-
-        async function updateTotalProjects() {
-            try {
-                const snapshot = await getDocs(collection(db, 'projects'));
-                totalProjectsCount = snapshot.size;
-                ownerTotalProjects.textContent = totalProjectsCount;
-            } catch (e) {
-                totalProjectsCount = 0;
-                ownerTotalProjects.textContent = '0';
-            }
-        }
-
-        async function loadLiveUsers() {
-            try {
-                const q = query(collection(db, 'liveUsers'), orderBy('lastActive', 'desc'));
-                const snapshot = await getDocs(q);
-                liveUsersList.innerHTML = '';
-                if (snapshot.empty) {
-                    liveUsersList.innerHTML = '<div style="color:#4a2a2a; font-size:0.7rem; padding:4px 0;">NO ACTIVE USERS</div>';
-                    return;
-                }
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const entry = document.createElement('div');
-                    entry.className = 'user-entry';
-                    entry.innerHTML = `<span>${data.email}</span><span class="status-dot">ONLINE</span>`;
-                    liveUsersList.appendChild(entry);
-                });
-                ownerActiveSessions.textContent = snapshot.size;
-                activeSessions = snapshot.size;
-            } catch (e) {
-                liveUsersList.innerHTML = '<div style="color:#4a2a2a; font-size:0.7rem; padding:4px 0;">UNABLE TO LOAD LIVE USERS</div>';
             }
         }
 
@@ -1933,10 +2334,7 @@
                 ownerLockStatus.textContent = 'UNLOCKED';
                 ownerLockStatus.className = 'lock-status unlocked';
                 addLog('OWNER PANEL UNLOCKED', false, true);
-                updateTotalUsers();
-                updateTotalProjects();
-                ownerTotalDownloads.textContent = totalDownloadsCount;
-                loadLiveUsers();
+                updateDashboard();
                 loadBroadcastHistory();
             } else {
                 alert('INCORRECT PASSWORD');
@@ -1998,8 +2396,7 @@
                 await batch.commit();
                 addLog('USER DELETED: ' + email, true);
                 alert('USER ' + email + ' AND ALL PROJECTS DELETED');
-                updateTotalUsers();
-                updateTotalProjects();
+                await updateDashboard();
             } catch (error) {
                 alert('ERROR: ' + error.message);
                 addLog('DELETE USER ERROR: ' + error.message, true);
@@ -2050,7 +2447,7 @@
                     addLog('PROJECT RESTORED: ' + projectId, false, true);
                     alert('PROJECT RESTORED');
                 }
-                updateTotalProjects();
+                await updateDashboard();
             } catch (error) {
                 alert('ERROR: ' + error.message);
                 addLog('CONTENT ACTION ERROR: ' + error.message, true);
@@ -2072,7 +2469,7 @@
                 await batch.commit();
                 addLog('ALL PROJECTS CLEARED', true);
                 alert('ALL PROJECTS DELETED');
-                updateTotalProjects();
+                await updateDashboard();
                 if (currentUser) loadProjects();
             } catch (error) {
                 alert('ERROR: ' + error.message);
@@ -2105,13 +2502,7 @@
 
         ownerSetMode.addEventListener('click', async () => {
             const mode = ownerSystemMode.value;
-            systemMode = mode;
             await setDoc(doc(db, 'systemSettings', 'mode'), { mode, updatedAt: serverTimestamp() });
-            if (mode === 'maintenance') {
-                maintenanceBanner.classList.add('active');
-            } else {
-                maintenanceBanner.classList.remove('active');
-            }
             addLog('SYSTEM MODE SET TO: ' + mode.toUpperCase(), false, true);
             alert('SYSTEM MODE SET TO: ' + mode.toUpperCase());
         });
@@ -2128,7 +2519,7 @@
                     backup += 'USER: ' + (data.userEmail || 'Unknown') + '\n';
                     backup += 'APP ID: ' + (data.appId || 'None') + '\n';
                     backup += 'VERSION: ' + (data.version || '1.0.0') + '\n';
-                    backup += 'HTML: ' + (data.html || '').substring(0, 100) + '...\n\n';
+                    backup += 'CODE: ' + (data.code || '').substring(0, 200) + '...\n\n';
                 });
                 const blob = new Blob([backup], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
@@ -2158,6 +2549,8 @@
                 report += 'TOTAL PROJECTS: ' + projectsSnap.size + '\n';
                 report += 'TOTAL DOWNLOADS: ' + totalDownloadsCount + '\n';
                 report += 'ACTIVE SESSIONS: ' + activeSessions + '\n';
+                report += 'TOTAL VISITS: ' + totalVisitsCount + '\n';
+                report += 'TOTAL APP BUILDS: ' + totalAppBuilds + '\n';
                 report += '================================\n\n';
                 report += 'TOP PROJECTS BY VIEWS:\n';
                 const projects = [];
@@ -2202,75 +2595,15 @@
                 await batch.commit();
                 await deleteDoc(doc(db, 'broadcasts', 'current'));
                 await deleteDoc(doc(db, 'systemSettings', 'mode'));
+                await setDoc(doc(db, 'stats', 'visits'), { count: 0 });
                 addLog('ALL DATA RESET', true);
                 alert('ALL DATA HAS BEEN RESET');
-                updateTotalUsers();
-                updateTotalProjects();
+                await updateDashboard();
                 if (currentUser) loadProjects();
             } catch (error) {
                 alert('ERROR: ' + error.message);
                 addLog('RESET ERROR: ' + error.message, true);
             }
-        });
-
-        ownerSendBroadcast.addEventListener('click', async () => {
-            const msg = ownerBroadcastText.value.trim();
-            if (!msg) { alert('ENTER A MESSAGE'); return; }
-            try {
-                await setDoc(doc(db, 'broadcasts', 'current'), {
-                    message: msg,
-                    timestamp: serverTimestamp()
-                });
-                const historyRef = collection(db, 'broadcastHistory');
-                await addDoc(historyRef, { message: msg, timestamp: serverTimestamp() });
-                addLog('BROADCAST SENT: ' + msg, false, true);
-                alert('BROADCAST SENT TO ALL USERS');
-                loadBroadcastHistory();
-            } catch (error) {
-                alert('ERROR: ' + error.message);
-                addLog('BROADCAST ERROR: ' + error.message, true);
-            }
-        });
-
-        async function loadBroadcastHistory() {
-            try {
-                const q = query(collection(db, 'broadcastHistory'), orderBy('timestamp', 'desc'), limit(20));
-                const snapshot = await getDocs(q);
-                broadcastHistory.innerHTML = '';
-                if (snapshot.empty) {
-                    broadcastHistory.innerHTML = '<div style="color:#4a2a2a; font-size:0.6rem; padding:4px 0;">NO BROADCASTS YET</div>';
-                    return;
-                }
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const entry = document.createElement('div');
-                    entry.className = 'bc-entry';
-                    const time = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString() : 'Unknown';
-                    entry.innerHTML = `<span class="bc-time">[${time}]</span><span class="bc-msg">${data.message}</span>`;
-                    broadcastHistory.appendChild(entry);
-                });
-            } catch (e) {
-                broadcastHistory.innerHTML = '<div style="color:#4a2a2a; font-size:0.6rem; padding:4px 0;">UNABLE TO LOAD HISTORY</div>';
-            }
-        }
-
-        // ============================================================
-        // SNIPPETS
-        // ============================================================
-        document.querySelectorAll('.snippet-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const key = this.dataset.snippet;
-                if (snippets[key]) {
-                    const editor = codeEditor;
-                    const start = editor.selectionStart;
-                    const end = editor.selectionEnd;
-                    const text = editor.value;
-                    editor.value = text.substring(0, start) + snippets[key] + text.substring(end);
-                    editor.focus();
-                    editor.selectionStart = editor.selectionEnd = start + snippets[key].length;
-                    addLog('SNIPPET INSERTED: ' + key.toUpperCase());
-                }
-            });
         });
 
         // ============================================================
@@ -2280,17 +2613,17 @@
         signInBtn.addEventListener('click', signIn);
         signOutBtn.addEventListener('click', signOutUser);
         resendVerificationBtn.addEventListener('click', resendVerification);
+        ownerSendBroadcastBtn.addEventListener('click', sendBroadcast);
+        broadcastSeenBtn.addEventListener('click', markBroadcastSeen);
+
+        // Fullscreen
+        fullscreenBtn.addEventListener('click', openFullscreen);
+        fsCloseBtn.addEventListener('click', closeFullscreen);
+        fsRefreshBtn.addEventListener('click', refreshFullscreen);
+        fsResetBtn.addEventListener('click', resetFullscreen);
 
         passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') signIn(); });
         emailInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') passwordInput.focus(); });
-
-        document.querySelectorAll('.code-tabs button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.code-tabs button').forEach(b => b.classList.remove('active-tab'));
-                this.classList.add('active-tab');
-                currentEditor = this.dataset.editor;
-            });
-        });
 
         runBtn.addEventListener('click', runPreview);
         resetBtn.addEventListener('click', resetPreview);
@@ -2321,37 +2654,18 @@
             clearTimeout(autoSaveTimer);
             autoSaveTimer = setTimeout(() => {
                 if (currentUser && currentUser.emailVerified && projectNameInput.value.trim()) {
-                    const { html, css, js } = getFullCode();
-                    localStorage.setItem('fsga_draft_html', html);
-                    localStorage.setItem('fsga_draft_css', css);
-                    localStorage.setItem('fsga_draft_js', js);
+                    localStorage.setItem('fsga_draft_code', codeEditor.value);
                     localStorage.setItem('fsga_draft_name', projectNameInput.value.trim());
                 }
             }, 30000);
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            const draftHtml = localStorage.getItem('fsga_draft_html');
-            const draftCss = localStorage.getItem('fsga_draft_css');
-            const draftJs = localStorage.getItem('fsga_draft_js');
+            const draftCode = localStorage.getItem('fsga_draft_code');
             const draftName = localStorage.getItem('fsga_draft_name');
-            if (draftHtml || draftCss || draftJs) {
+            if (draftCode) {
                 if (confirm('LOAD YOUR DRAFT FROM LOCAL STORAGE?')) {
-                    const htmlTab = document.querySelector('[data-editor="html"]');
-                    const cssTab = document.querySelector('[data-editor="css"]');
-                    const jsTab = document.querySelector('[data-editor="js"]');
-                    if (draftHtml) {
-                        htmlTab.click();
-                        codeEditor.value = draftHtml;
-                    }
-                    if (draftCss) {
-                        cssTab.click();
-                        codeEditor.value = draftCss;
-                    }
-                    if (draftJs) {
-                        jsTab.click();
-                        codeEditor.value = draftJs;
-                    }
+                    codeEditor.value = draftCode;
                     if (draftName) projectNameInput.value = draftName;
                     addLog('DRAFT LOADED FROM LOCAL STORAGE', false, true);
                 }
@@ -2376,6 +2690,9 @@
                         ownerContent.classList.remove('visible');
                     }
                 }
+                if (this.dataset.panel === 'dashboard') {
+                    updateDashboard();
+                }
             });
         });
 
@@ -2389,11 +2706,9 @@
         console.log('OWNER PASSWORD: FS Four Seven');
 
         setTimeout(() => {
-            updateTotalUsers();
-            updateTotalProjects();
-            ownerTotalDownloads.textContent = totalDownloadsCount;
-            loadLiveUsers();
+            updateDashboard();
             loadBroadcastHistory();
+            listenForBroadcasts();
         }, 1000);
     </script>
 
