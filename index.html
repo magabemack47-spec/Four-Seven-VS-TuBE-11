@@ -6,8 +6,8 @@
     <title>FS G.A SiTe // APP & GAME BUILDER</title>
     
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
         import { 
             getAuth, 
             createUserWithEmailAndPassword, 
@@ -15,7 +15,7 @@
             signOut, 
             onAuthStateChanged,
             sendEmailVerification
-        } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
         import {
             getFirestore,
             collection,
@@ -33,17 +33,15 @@
             writeBatch,
             orderBy,
             onSnapshot
-        } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBsPEyncKT5QGfmIqh_u16m9ZnwbSQJ30M",
-            authDomain: "four-seven-vs-tube-11.firebaseapp.com",
-            databaseURL: "https://four-seven-vs-tube-11-default-rtdb.firebaseio.com",
-            projectId: "four-seven-vs-tube-11",
-            storageBucket: "four-seven-vs-tube-11.firebasestorage.app",
-            messagingSenderId: "212207205795",
-            appId: "1:212207205795:web:148dee64635684c89f6e16",
-            measurementId: "G-DWVEQVWV3L"
+            apiKey: "AIzaSyDqtiLqnXLobAuey4BWvFlAE78P5DEeHEs",
+            authDomain: "fs-ga-builder-ca4ab.firebaseapp.com",
+            projectId: "fs-ga-builder-ca4ab",
+            storageBucket: "fs-ga-builder-ca4ab.firebasestorage.app",
+            messagingSenderId: "1058070250904",
+            appId: "1:1058070250904:web:b732a049256653180057ed"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -417,9 +415,6 @@
         }
         .preview-controls .btn-share:hover { background: #0a1a3a; border-color: #2a6aaa; color: #6a9aff; box-shadow: 0 0 25px rgba(0, 80, 255, 0.15); }
         
-        /* ============================================================ */
-        /* FULLSCREEN PREVIEW OVERLAY */
-        /* ============================================================ */
         .fullscreen-overlay {
             position: fixed;
             top: 0;
@@ -433,9 +428,7 @@
             padding: 10px;
             box-shadow: 0 0 60px rgba(0, 80, 255, 0.1);
         }
-        .fullscreen-overlay.active {
-            display: flex;
-        }
+        .fullscreen-overlay.active { display: flex; }
         .fullscreen-overlay .fs-header {
             display: flex;
             justify-content: space-between;
@@ -465,12 +458,7 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-        .fullscreen-overlay .fs-header .fs-close:hover {
-            background: #2a0f0f;
-            border-color: #6a2222;
-            color: #e0d0d0;
-            box-shadow: 0 0 25px rgba(0, 80, 255, 0.1);
-        }
+        .fullscreen-overlay .fs-header .fs-close:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.1); }
         .fullscreen-overlay .fs-body {
             flex: 1;
             background: #0a0303;
@@ -505,20 +493,9 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-        .fullscreen-overlay .fs-footer .fs-btn:hover {
-            background: #2a0f0f;
-            border-color: #6a2222;
-            color: #e0d0d0;
-        }
-        .fullscreen-overlay .fs-footer .fs-btn-blue {
-            border-color: #2a6aaa;
-            color: #4a8aff;
-        }
-        .fullscreen-overlay .fs-footer .fs-btn-blue:hover {
-            background: #0a1a3a;
-            border-color: #4a8aff;
-            box-shadow: 0 0 30px rgba(0, 80, 255, 0.1);
-        }
+        .fullscreen-overlay .fs-footer .fs-btn:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; }
+        .fullscreen-overlay .fs-footer .fs-btn-blue { border-color: #2a6aaa; color: #4a8aff; }
+        .fullscreen-overlay .fs-footer .fs-btn-blue:hover { background: #0a1a3a; border-color: #4a8aff; box-shadow: 0 0 30px rgba(0, 80, 255, 0.1); }
         
         .projects-list {
             display: grid;
@@ -564,9 +541,6 @@
         .project-card .card-actions .btn-delete { border-color: #3a1515; color: #6a2a2a; }
         .project-card .card-actions .btn-delete:hover { border-color: #8f2222; color: #b02b2b; }
         
-        /* ============================================================ */
-        /* DASHBOARD - USER ACTIVITY (NO STATS) */
-        /* ============================================================ */
         .dashboard-title {
             color: #4a8aff;
             font-size: 0.75rem;
@@ -923,6 +897,7 @@
             padding: 8px 14px;
             color: #c0b0b0;
             font-family: 'Courier New', monospace;
+monospace;
             font-size: 0.8rem;
             min-width: 150px;
             transition: 0.3s;
@@ -1161,7 +1136,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- PANEL: DASHBOARD - USER ACTIVITY (NO STATS) -->
+        <!-- PANEL: DASHBOARD -->
         <!-- ============================================================ -->
         <div id="panel-dashboard" class="panel">
             <div class="dashboard-title">
@@ -1253,7 +1228,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- PANEL: OWNER - ALL STATS HERE (ONLY OWNER SEES) -->
+        <!-- PANEL: OWNER -->
         <!-- ============================================================ -->
         <div id="panel-owner" class="panel">
             <div class="owner-lock" id="ownerLock">
@@ -1384,8 +1359,8 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
         import { 
             getAuth, 
             createUserWithEmailAndPassword, 
@@ -1393,7 +1368,7 @@
             signOut, 
             onAuthStateChanged,
             sendEmailVerification
-        } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
         import {
             getFirestore,
             collection,
@@ -1411,17 +1386,15 @@
             writeBatch,
             orderBy,
             onSnapshot
-        } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBsPEyncKT5QGfmIqh_u16m9ZnwbSQJ30M",
-            authDomain: "four-seven-vs-tube-11.firebaseapp.com",
-            databaseURL: "https://four-seven-vs-tube-11-default-rtdb.firebaseio.com",
-            projectId: "four-seven-vs-tube-11",
-            storageBucket: "four-seven-vs-tube-11.firebasestorage.app",
-            messagingSenderId: "212207205795",
-            appId: "1:212207205795:web:148dee64635684c89f6e16",
-            measurementId: "G-DWVEQVWV3L"
+            apiKey: "AIzaSyDqtiLqnXLobAuey4BWvFlAE78P5DEeHEs",
+            authDomain: "fs-ga-builder-ca4ab.firebaseapp.com",
+            projectId: "fs-ga-builder-ca4ab",
+            storageBucket: "fs-ga-builder-ca4ab.firebasestorage.app",
+            messagingSenderId: "1058070250904",
+            appId: "1:1058070250904:web:b732a049256653180057ed"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -1451,14 +1424,12 @@
         const exportZipBtn = document.getElementById('exportZipBtn');
         const projectsContainer = document.getElementById('projectsContainer');
 
-        // Fullscreen Elements
         const fullscreenOverlay = document.getElementById('fullscreenOverlay');
         const fsIframe = document.getElementById('fsIframe');
         const fsCloseBtn = document.getElementById('fsCloseBtn');
         const fsRefreshBtn = document.getElementById('fsRefreshBtn');
         const fsResetBtn = document.getElementById('fsResetBtn');
 
-        // Dashboard
         const userTableBody = document.getElementById('userTableBody');
         const userCountLabel = document.getElementById('userCountLabel');
         const systemLog = document.getElementById('systemLog');
@@ -1613,7 +1584,6 @@
             addLog('FULLSCREEN RESET');
         }
 
-        // ESC key to exit fullscreen
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && fullscreenOverlay.classList.contains('active')) {
                 closeFullscreen();
@@ -1732,7 +1702,7 @@
         }
 
         // ============================================================
-        // DASHBOARD - USER ACTIVITY ONLY
+        // DASHBOARD
         // ============================================================
         async function updateDashboard() {
             try {
@@ -2616,7 +2586,6 @@
         ownerSendBroadcastBtn.addEventListener('click', sendBroadcast);
         broadcastSeenBtn.addEventListener('click', markBroadcastSeen);
 
-        // Fullscreen
         fullscreenBtn.addEventListener('click', openFullscreen);
         fsCloseBtn.addEventListener('click', closeFullscreen);
         fsRefreshBtn.addEventListener('click', refreshFullscreen);
