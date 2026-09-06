@@ -1950,26 +1950,85 @@
         // AUTH
         // ============================================================
         async function signUp() {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    
+    if (!email || !password) { 
+        alert('ENTER EMAIL AND PASSWORD'); 
+        return; 
+    }
+    if (password.length < 6) { 
+        alert('PASSWORD MUST BE AT LEAST 6 CHARACTERS'); 
+        return; 
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('PLEASE ENTER A VALID EMAIL ADDRESS');
+        return;
+    }
+    
+    signUpBtn.disabled = true;
+    signUpBtn.textContent = 'CREATING...';
+    
+    try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCred.user;
+        console.log('✅ User created:', user.email);
+        
+        try {
+            await sendEmailVerification(user);
+            console.log('✅ Verification email sent to:', email);
             
-            if (!email || !password) { alert('ENTER EMAIL AND PASSWORD'); return; }
-            if (password.length < 6) { alert('PASSWORD MUST BE AT LEAST 6 CHARACTERS'); return; }
+            // Update the verification banner with the email
+            verificationBanner.classList.add('active');
+            verificationBanner.innerHTML = `
+                VERIFICATION EMAIL SENT TO ${email} 
+                <button id="resendVerificationBtn" style="background:transparent;border:1px solid #6a4a1a;color:#b08a4a;padding:4px 12px;margin-left:10px;cursor:pointer;font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:1px;">RESEND EMAIL</button>
+            `;
             
-            try {
-                const userCred = await createUserWithEmailAndPassword(auth, email, password);
-                await sendEmailVerification(userCred.user);
-                await signOut(auth);
-                verificationBanner.classList.add('active');
-                alert('ACCOUNT CREATED. Please check your email to verify your account.');
-                addLog('VERIFICATION EMAIL SENT TO: ' + email, false, true);
-                await updateDashboard();
-            } catch (error) {
-                alert('ERROR: ' + error.message);
-                addLog('SIGN UP ERROR: ' + error.message, true);
+            // Re-attach the resend button event
+            const newResendBtn = document.getElementById('resendVerificationBtn');
+            if (newResendBtn) {
+                newResendBtn.addEventListener('click', resendVerification);
             }
+            
+            await signOut(auth);
+            alert('✅ ACCOUNT CREATED!\n\nVerification email sent to: ' + email + '\n\nPlease check your inbox and spam folder.\nClick the link in the email to verify your account.');
+            addLog('✅ VERIFICATION EMAIL SENT TO: ' + email, false, true);
+            
+        } catch (verifyError) {
+            console.error('❌ Failed to send verification email:', verifyError);
+            alert('⚠️ ACCOUNT CREATED\n\nVerification email failed to send.\nError: ' + verifyError.message + '\n\nPlease try resending the verification email or contact support.');
+            addLog('⚠️ VERIFICATION EMAIL FAILED: ' + verifyError.message, true);
         }
-
+        
+        await updateDashboard();
+        
+    } catch (error) {
+        console.error('❌ Sign up error:', error);
+        let errorMessage = error.message;
+        
+        // More user-friendly error messages
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'This email is already registered. Please sign in instead.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Please enter a valid email address.';
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'Password is too weak. Please use at least 6 characters.';
+        } else if (error.code === 'auth/too-many-requests') {
+            errorMessage = 'Too many requests. Please try again later.';
+        }
+        
+        alert('❌ ERROR: ' + errorMessage);
+        addLog('❌ SIGN UP ERROR: ' + error.code + ' - ' + error.message, true);
+        
+    } finally {
+        signUpBtn.disabled = false;
+        signUpBtn.textContent = 'SIGN UP';
+    }
+}
         async function resendVerification() {
             if (!currentUser) { alert('PLEASE SIGN IN FIRST'); return; }
             try {
