@@ -2097,7 +2097,143 @@
                 alert('ERROR: ' + error.message);
             }
         }
+// ============================================================
+// AUTH
+// ============================================================
+async function signUp() {
+    console.log('🚀 Sign Up clicked!');
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    
+    console.log('Email:', email);
+    
+    if (!email || !password) { 
+        alert('ENTER EMAIL AND PASSWORD'); 
+        return; 
+    }
+    if (password.length < 6) { 
+        alert('PASSWORD MUST BE AT LEAST 6 CHARACTERS'); 
+        return; 
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('PLEASE ENTER A VALID EMAIL ADDRESS');
+        return;
+    }
+    
+    signUpBtn.disabled = true;
+    signUpBtn.textContent = 'CREATING...';
+    
+    try {
+        console.log('Creating user...');
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCred.user;
+        console.log('User created:', user.email);
+        
+        try {
+            await sendEmailVerification(user);
+            console.log('Verification email sent');
+            verificationBanner.classList.add('active');
+            verificationBanner.innerHTML = `
+                VERIFICATION EMAIL SENT TO ${email} 
+                <button id="resendVerificationBtn" style="background:transparent;border:1px solid #6a4a1a;color:#b08a4a;padding:4px 12px;margin-left:10px;cursor:pointer;font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:1px;">RESEND EMAIL</button>
+            `;
+            await signOut(auth);
+            alert('✅ ACCOUNT CREATED!\n\nVerification email sent to: ' + email + '\n\nPlease check your inbox and spam folder.');
+            addLog('VERIFICATION EMAIL SENT TO: ' + email, false, true);
+        } catch (verifyError) {
+            console.error('Verification email failed:', verifyError);
+            alert('⚠️ ACCOUNT CREATED\n\nVerification email failed to send.\nError: ' + verifyError.message);
+            addLog('VERIFICATION EMAIL FAILED: ' + verifyError.message, true);
+        }
+        await updateDashboard();
+    } catch (error) {
+        console.error('Sign up error:', error);
+        let errorMessage = error.message;
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'This email is already registered. Please sign in.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'Please enter a valid email address.';
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'Password must be at least 6 characters.';
+        }
+        alert('ERROR: ' + errorMessage);
+        addLog('SIGN UP ERROR: ' + error.code + ' - ' + error.message, true);
+    } finally {
+        signUpBtn.disabled = false;
+        signUpBtn.textContent = 'SIGN UP';
+    }
+}
 
+async function signIn() {
+    console.log('🚀 Sign In clicked!');
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    if (!email || !password) { alert('ENTER EMAIL AND PASSWORD'); return; }
+    try {
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        if (!userCred.user.emailVerified) {
+            alert('PLEASE VERIFY YOUR EMAIL FIRST. Check your inbox and spam folder.');
+            await signOut(auth);
+            verificationBanner.classList.add('active');
+            return;
+        }
+        addLog('USER SIGNED IN: ' + email, false, true);
+        await setDoc(doc(db, 'liveUsers', email), { email, lastActive: serverTimestamp() });
+        await incrementVisits();
+        await updateDashboard();
+        verificationBanner.classList.remove('active');
+        setTimeout(listenForBroadcasts, 1000);
+    } catch (error) {
+        alert('ERROR: ' + error.message);
+        addLog('SIGN IN ERROR: ' + error.message, true);
+    }
+}
+
+async function signOutUser() {
+    console.log('🚀 Sign Out clicked!');
+    try {
+        if (currentUser) {
+            await deleteDoc(doc(db, 'liveUsers', currentUser.email));
+        }
+        await signOut(auth);
+        verificationBanner.classList.remove('active');
+        broadcastBanner.classList.remove('active');
+        await updateDashboard();
+        addLog('USER SIGNED OUT');
+    } catch (error) {
+        alert('ERROR: ' + error.message);
+    }
+}
+
+async function resendVerification() {
+    console.log('🚀 Resend Verification clicked!');
+    if (!currentUser) { 
+        alert('PLEASE SIGN IN FIRST'); 
+        return; 
+    }
+    const resendBtn = document.getElementById('resendVerificationBtn');
+    if (resendBtn) {
+        resendBtn.disabled = true;
+        resendBtn.textContent = 'SENDING...';
+    }
+    try {
+        await sendEmailVerification(currentUser);
+        verificationBanner.classList.add('active');
+        alert('✅ VERIFICATION EMAIL RESENT to ' + currentUser.email + '\n\nPlease check your inbox and spam folder.');
+        addLog('VERIFICATION EMAIL RESENT TO: ' + currentUser.email, false, true);
+    } catch (error) {
+        console.error('Resend error:', error);
+        alert('ERROR: ' + error.message);
+        addLog('RESEND VERIFICATION ERROR: ' + error.message, true);
+    } finally {
+        if (resendBtn) {
+            resendBtn.disabled = false;
+            resendBtn.textContent = 'RESEND EMAIL';
+        }
+    }
+}
         // ============================================================
         // AUTH STATE
         // ============================================================
@@ -2633,24 +2769,60 @@
             }
         });
 
-        // ============================================================
-        // EVENT LISTENERS
-        // ============================================================
-        signUpBtn.addEventListener('click', signUp);
-        signInBtn.addEventListener('click', signIn);
-        signOutBtn.addEventListener('click', signOutUser);
-        resendVerificationBtn.addEventListener('click', resendVerification);
-        ownerSendBroadcastBtn.addEventListener('click', sendBroadcast);
-        broadcastSeenBtn.addEventListener('click', markBroadcastSeen);
+ // ============================================================
+// EVENT LISTENERS
+// ============================================================
+// Sign Up button
+if (signUpBtn) {
+    signUpBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        signUp();
+    });
+    console.log('✅ Sign Up button listener attached');
+} else {
+    console.error('❌ Sign Up button not found!');
+}
 
-        fullscreenBtn.addEventListener('click', openFullscreen);
-        fsCloseBtn.addEventListener('click', closeFullscreen);
-        fsRefreshBtn.addEventListener('click', refreshFullscreen);
-        fsResetBtn.addEventListener('click', resetFullscreen);
+// Sign In button
+if (signInBtn) {
+    signInBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        signIn();
+    });
+    console.log('✅ Sign In button listener attached');
+} else {
+    console.error('❌ Sign In button not found!');
+}
 
-        passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') signIn(); });
-        emailInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') passwordInput.focus(); });
+// Sign Out button
+if (signOutBtn) {
+    signOutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        signOutUser();
+    });
+    console.log('✅ Sign Out button listener attached');
+}
 
+// Resend Verification - using event delegation
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'resendVerificationBtn') {
+        e.preventDefault();
+        resendVerification();
+    }
+});
+console.log('✅ Resend Verification listener attached');
+
+// Password Enter key
+if (passwordInput) {
+    passwordInput.addEventListener('keypress', (e) => { 
+        if (e.key === 'Enter') signIn(); 
+    });
+}
+if (emailInput) {
+    emailInput.addEventListener('keypress', (e) => { 
+        if (e.key === 'Enter') passwordInput.focus(); 
+    });
+}
         runBtn.addEventListener('click', runPreview);
         resetBtn.addEventListener('click', resetPreview);
         downloadBtn.addEventListener('click', downloadApk);
