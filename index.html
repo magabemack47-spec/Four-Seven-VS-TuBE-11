@@ -2030,17 +2030,34 @@
     }
 }
         async function resendVerification() {
-            if (!currentUser) { alert('PLEASE SIGN IN FIRST'); return; }
-            try {
-                await sendEmailVerification(currentUser);
-                verificationBanner.classList.add('active');
-                alert('VERIFICATION EMAIL RESENT. Please check your inbox and spam folder.');
-                addLog('VERIFICATION EMAIL RESENT TO: ' + currentUser.email, false, true);
-            } catch (error) {
-                alert('ERROR: ' + error.message);
-                addLog('RESEND VERIFICATION ERROR: ' + error.message, true);
-            }
+    if (!currentUser) { 
+        alert('PLEASE SIGN IN FIRST'); 
+        return; 
+    }
+    
+    // Show loading state
+    const resendBtn = document.getElementById('resendVerificationBtn');
+    if (resendBtn) {
+        resendBtn.disabled = true;
+        resendBtn.textContent = 'SENDING...';
+    }
+    
+    try {
+        await sendEmailVerification(currentUser);
+        verificationBanner.classList.add('active');
+        alert('✅ VERIFICATION EMAIL RESENT to ' + currentUser.email + '\n\nPlease check your inbox and spam folder.');
+        addLog('✅ VERIFICATION EMAIL RESENT TO: ' + currentUser.email, false, true);
+    } catch (error) {
+        console.error('Resend verification error:', error);
+        alert('❌ ERROR: ' + error.message + '\n\nPlease try again later or contact support.');
+        addLog('❌ RESEND VERIFICATION ERROR: ' + error.message, true);
+    } finally {
+        if (resendBtn) {
+            resendBtn.disabled = false;
+            resendBtn.textContent = 'RESEND EMAIL';
         }
+    }
+}
 
         async function signIn() {
             const email = emailInput.value.trim();
