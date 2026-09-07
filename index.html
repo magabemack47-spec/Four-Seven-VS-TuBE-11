@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FS G.A SiTe // APP & GAME BUILDER</title>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -112,6 +110,61 @@
             margin-left: auto;
         }
         .auth-bar .user-status.signed-in { color: #6a8a6a; }
+        .auth-bar .user-status.unverified { color: #8a6a3a; }
+        
+        .verification-banner {
+            background: #3a2a0a;
+            border: 1px solid #6a4a1a;
+            color: #b08a4a;
+            padding: 10px 16px;
+            text-align: center;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.7rem;
+            display: none;
+        }
+        .verification-banner.active { display: block; }
+        
+        .broadcast-banner {
+            background: #0a1a2a;
+            border: 1px solid #2a6aaa;
+            color: #4a8aff;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            display: none;
+            box-shadow: 0 0 30px rgba(0, 80, 255, 0.15), inset 0 0 30px rgba(0, 80, 255, 0.05);
+            border-radius: 4px;
+            animation: pulseBlue 2s infinite;
+            position: relative;
+        }
+        .broadcast-banner.active { display: block; }
+        .broadcast-banner .broadcast-msg { color: #8ab4ff; font-size: 0.9rem; font-weight: 600; text-shadow: 0 0 20px rgba(0, 80, 255, 0.2); }
+        .broadcast-banner .broadcast-time { color: #4a6a8a; font-size: 0.6rem; margin-left: 12px; }
+        .broadcast-banner .btn-seen {
+            background: transparent;
+            border: 1px solid #2a6aaa;
+            color: #4a8aff;
+            padding: 4px 16px;
+            margin-left: 14px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            border-radius: 3px;
+        }
+        .broadcast-banner .btn-seen:hover { background: #0a1a3a; border-color: #4a8aff; box-shadow: 0 0 30px rgba(0, 80, 255, 0.2); }
+        
+        @keyframes pulseBlue {
+            0% { box-shadow: 0 0 20px rgba(0, 80, 255, 0.1), inset 0 0 20px rgba(0, 80, 255, 0.02); }
+            50% { box-shadow: 0 0 40px rgba(0, 80, 255, 0.2), inset 0 0 40px rgba(0, 80, 255, 0.05); }
+            100% { box-shadow: 0 0 20px rgba(0, 80, 255, 0.1), inset 0 0 20px rgba(0, 80, 255, 0.02); }
+        }
         
         .nav-menu {
             display: flex;
@@ -321,20 +374,6 @@
             transition: 0.2s;
         }
         .preview-controls .btn-update:hover { background: #0a2a1a; border-color: #4a8a5a; color: #6aaa7a; box-shadow: 0 0 25px rgba(0, 200, 80, 0.1); }
-        .preview-controls .btn-check-update {
-            background: #0a1a2a;
-            border: 1px solid #2a4a6a;
-            color: #4a8aff;
-            padding: 8px 18px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .preview-controls .btn-check-update:hover { background: #0a2a4a; border-color: #4a6a8a; color: #6a9aff; box-shadow: 0 0 25px rgba(0, 80, 255, 0.15); }
         
         .fullscreen-overlay {
             position: fixed;
@@ -459,8 +498,6 @@
         .project-card .card-actions .btn-appid:hover { background: #0a1a3a; border-color: #2a6aaa; color: #6a9aff; }
         .project-card .card-actions .btn-delete { border-color: #3a1515; color: #6a2a2a; }
         .project-card .card-actions .btn-delete:hover { border-color: #8f2222; color: #b02b2b; }
-        .project-card .card-actions .btn-download-app { border-color: #2a6a3a; color: #4a8a4a; }
-        .project-card .card-actions .btn-download-app:hover { background: #0a1a0a; border-color: #4a8a4a; color: #6aaa6a; }
         
         .dashboard-title {
             color: #4a8aff;
@@ -521,6 +558,7 @@
         .user-table .status-dot.offline { background: #4a3a3a; }
         .user-table .user-email { color: #b0a0a0; }
         .user-table .user-time { color: #4a6a6a; font-size: 0.6rem; }
+        .user-table .user-action { color: #6a8a6a; font-size: 0.6rem; }
         
         .system-log {
             background: #080202;
@@ -620,31 +658,18 @@
         .owner-content { display: none; }
         .owner-content.visible { display: block; }
         
-        .owner-stats {
+        .owner-controls {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
-            margin: 15px 0;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+            margin: 18px 0;
         }
-        .owner-stat-card {
-            background: #0a0303;
-            border: 1px solid #1f0f0f;
-            padding: 14px;
-            text-align: center;
-            transition: 0.3s;
-        }
-        .owner-stat-card:hover { border-color: #2a5a8a; }
-        .owner-stat-card .label { font-size: 0.55rem; letter-spacing: 2px; color: #4a3a3a; text-transform: uppercase; }
-        .owner-stat-card .value { font-size: 1.8rem; font-weight: 700; color: #4a8aff; text-shadow: 0 0 30px rgba(0, 80, 255, 0.2); margin: 4px 0; }
-        .owner-stat-card .sub { font-size: 0.55rem; color: #3a2a2a; }
-        
         .control-card {
             background: #0a0303;
             border: 1px solid #1f0f0f;
             padding: 16px;
             transition: 0.3s;
             box-shadow: 0 0 20px rgba(0, 50, 200, 0.02);
-            margin-bottom: 18px;
         }
         .control-card:hover { border-color: #2a5a8a; box-shadow: 0 0 30px rgba(0, 80, 255, 0.05); }
         .control-card .ctrl-label {
@@ -694,6 +719,24 @@
         .btn-green { border-color: #1a4a2a; color: #4a8a5a; }
         .btn-green:hover { background: #0a1a1a; border-color: #2a6a3a; color: #6aaa7a; box-shadow: 0 0 30px rgba(0, 200, 80, 0.1); }
         
+        .owner-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
+        }
+        .owner-stat-card {
+            background: #0a0303;
+            border: 1px solid #1f0f0f;
+            padding: 14px;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .owner-stat-card:hover { border-color: #2a5a8a; }
+        .owner-stat-card .label { font-size: 0.55rem; letter-spacing: 2px; color: #4a3a3a; text-transform: uppercase; }
+        .owner-stat-card .value { font-size: 1.8rem; font-weight: 700; color: #4a8aff; text-shadow: 0 0 30px rgba(0, 80, 255, 0.2); margin: 4px 0; }
+        .owner-stat-card .sub { font-size: 0.55rem; color: #3a2a2a; }
+        
         .live-users-list {
             max-height: 150px;
             overflow-y: auto;
@@ -735,6 +778,22 @@
             box-shadow: 0 0 20px rgba(0, 80, 255, 0.08);
             outline: none;
         }
+        .btn-broadcast {
+            background: #1a0808;
+            border: 1px solid #3a1515;
+            color: #b0a0a0;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            letter-spacing: 3px;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            width: 100%;
+        }
+        .btn-broadcast:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.06); }
         
         .broadcast-history {
             max-height: 100px;
@@ -840,6 +899,7 @@
             color: #4a8a4a;
             padding: 8px 22px;
             font-family: 'Courier New', monospace;
+monospace;
             font-weight: 600;
             letter-spacing: 2px;
             font-size: 0.7rem;
@@ -931,154 +991,6 @@
             color: #6a5a5a;
         }
         .fsga-modal-content .btn-modal-close:hover { border-color: #4a3a3a; color: #9a8a8a; }
-        
-        .apk-instructions {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999999;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .apk-instructions .box {
-            background: #1a0a0a;
-            border: 2px solid #4a8aff;
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
-            border-radius: 8px;
-            box-shadow: 0 0 60px rgba(0,80,255,0.2);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .apk-instructions .box h2 {
-            color: #4a8aff;
-            text-align: center;
-            letter-spacing: 3px;
-            margin-top: 0;
-            font-size: 1.3rem;
-        }
-        .apk-instructions .box .file-info {
-            background: #0a0303;
-            border: 1px solid #2a1212;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 4px;
-        }
-        .apk-instructions .box .file-info .label {
-            color: #4a3a3a;
-            font-size: 0.8rem;
-        }
-        .apk-instructions .box .file-info .value {
-            color: #4a8aff;
-            font-size: 1rem;
-            word-break: break-all;
-        }
-        .apk-instructions .box .file-info .sub {
-            color: #4a3a3a;
-            font-size: 0.7rem;
-            margin-top: 5px;
-        }
-        .apk-instructions .box .step-title {
-            text-align: center;
-            color: #c0b0b0;
-            margin: 15px 0;
-            font-size: 0.9rem;
-        }
-        .apk-instructions .box .steps {
-            background: #0a0303;
-            border: 1px solid #1a0808;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 4px;
-        }
-        .apk-instructions .box .steps .step {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-            color: #8a7a7a;
-            font-size: 0.85rem;
-        }
-        .apk-instructions .box .steps .step .num {
-            background: #4a8aff;
-            color: #000;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 12px;
-            flex-shrink: 0;
-            font-size: 0.8rem;
-        }
-        .apk-instructions .box .steps .step .highlight {
-            color: #4a8aff;
-        }
-        .apk-instructions .box .steps .step .highlight-green {
-            color: #4a8a4a;
-        }
-        .apk-instructions .box .btn-row {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-        .apk-instructions .box .btn-row .btn-pwa {
-            flex: 1;
-            background: #0a0303;
-            border: 2px solid #4a8aff;
-            color: #4a8aff;
-            padding: 12px 20px;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.8rem;
-            transition: 0.3s;
-            cursor: pointer;
-        }
-        .apk-instructions .box .btn-row .btn-pwa:hover {
-            background: #0a1a3a;
-            box-shadow: 0 0 30px rgba(0,80,255,0.15);
-        }
-        .apk-instructions .box .btn-row .btn-close {
-            flex: 1;
-            background: #0a0303;
-            border: 2px solid #3a1515;
-            color: #6a5a5a;
-            padding: 12px 20px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .apk-instructions .box .btn-row .btn-close:hover {
-            border-color: #6a2222;
-            color: #b0a0a0;
-        }
-        .apk-instructions .box .footer-note {
-            text-align: center;
-            color: #4a3a3a;
-            font-size: 0.65rem;
-            margin-top: 10px;
-            letter-spacing: 1px;
-        }
-        .apk-instructions .box .footer-note .hl {
-            color: #4a8aff;
-        }
     </style>
 </head>
 <body>
@@ -1096,6 +1008,11 @@
             <span class="broadcast-msg" id="broadcastMessage">MESSAGE HERE</span>
             <span class="broadcast-time" id="broadcastTime"></span>
             <button class="btn-seen" id="broadcastSeenBtn">SEEN</button>
+        </div>
+
+        <div class="verification-banner" id="verificationBanner">
+            VERIFICATION EMAIL SENT. PLEASE CHECK YOUR INBOX AND SPAM FOLDER.
+            <button id="resendVerificationBtn" style="background:transparent;border:1px solid #6a4a1a;color:#b08a4a;padding:4px 12px;margin-left:10px;cursor:pointer;font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:1px;">RESEND EMAIL</button>
         </div>
 
         <div class="auth-bar" id="authBar">
@@ -1125,8 +1042,6 @@
                 <button class="snippet-btn" data-snippet="form">FORM</button>
                 <button class="snippet-btn" data-snippet="animation">ANIMATION</button>
                 <button class="snippet-btn" data-snippet="localstorage">LOCAL STORAGE</button>
-                <button class="snippet-btn" data-snippet="game">FULL GAME</button>
-                <button class="snippet-btn" data-snippet="update-checker">UPDATE CHECKER</button>
             </div>
 
             <div class="builder-layout">
@@ -1138,7 +1053,7 @@
                         <input type="text" id="projectNameInput" placeholder="PROJECT NAME">
                         <button class="btn-save" id="saveProjectBtn">SAVE</button>
                         <button class="btn-load" id="loadProjectBtn">LOAD</button>
-                        <button class="btn-export" id="exportZipBtn">EXPORT HTML</button>
+                        <button class="btn-export" id="exportZipBtn">EXPORT</button>
                     </div>
                 </div>
 
@@ -1152,9 +1067,8 @@
                         <button class="btn-preview" id="resetBtn">RESET</button>
                         <button class="btn-fullscreen" id="fullscreenBtn">FULLSCREEN</button>
                         <button class="btn-share" id="shareBtn">SHARE</button>
-                        <button class="btn-check-update" id="checkUpdateBtn">CHECK UPDATE</button>
-                        <button class="btn-download" id="downloadBtn">DOWNLOAD APK</button>
-                        <button class="btn-update" id="pushUpdateBtn">PUSH UPDATE</button>
+                        <button class="btn-download" id="downloadBtn">📱 DOWNLOAD APK</button>
+                        <button class="btn-update" id="pushUpdateBtn">🔄 PUSH UPDATE</button>
                     </div>
                     <div class="download-status" id="downloadStatus">READY</div>
                     <div class="download-status" style="margin-top:4px; color:#4a6a4a; font-size:0.6rem;" id="appIdDisplay">APP ID: Not saved yet</div>
@@ -1180,12 +1094,12 @@
         <!-- PANEL: DASHBOARD -->
         <div id="panel-dashboard" class="panel">
             <div class="dashboard-title">
-                USER ACTIVITY <span>// LIVE SESSIONS</span>
+                ⟦ USER ACTIVITY <span>// LIVE SESSIONS</span> ⟧
             </div>
 
             <div class="user-list-container blue-glow">
                 <div class="section-title">
-                    <span>ACTIVE USERS</span>
+                    <span>⟦ ACTIVE USERS ⟧</span>
                     <span id="userCountLabel">0 USERS</span>
                 </div>
                 <div style="overflow-x:auto;">
@@ -1294,6 +1208,16 @@
                         <div class="sub">ONLINE</div>
                     </div>
                     <div class="owner-stat-card blue-glow">
+                        <div class="label">TOTAL VISITS</div>
+                        <div class="value" id="ownerTotalVisits">0</div>
+                        <div class="sub">WEBSITE</div>
+                    </div>
+                    <div class="owner-stat-card blue-glow">
+                        <div class="label">APPS BUILT</div>
+                        <div class="value" id="ownerAppBuilds">0</div>
+                        <div class="sub">TOTAL APPS</div>
+                    </div>
+                    <div class="owner-stat-card blue-glow">
                         <div class="label">TOTAL PROJECTS</div>
                         <div class="value" id="ownerTotalProjects">0</div>
                         <div class="sub">SAVED</div>
@@ -1305,17 +1229,60 @@
                     </div>
                 </div>
 
-                <div class="control-card blue-glow" style="border-color: #2a6aaa;">
-                    <span class="ctrl-label" style="color:#4a8aff;">BROADCAST TO ALL USERS</span>
+                <div class="control-card blue-glow" style="margin-bottom:18px; border-color: #2a6aaa;">
+                    <span class="ctrl-label" style="color:#4a8aff;">⟦ BROADCAST TO ALL USERS ⟧</span>
                     <textarea id="ownerBroadcastText" placeholder="ENTER BROADCAST MESSAGE ..." style="min-height:60px; border-color:#2a4a7a;">WELCOME TO FS G.A SiTe! Build your apps and games here.</textarea>
                     <button class="btn-owner btn-blue" id="ownerSendBroadcastBtn" style="margin-top:6px;">SEND BROADCAST</button>
                     <div id="broadcastStatus" style="color:#4a6a8a; font-size:0.6rem; margin-top:6px; letter-spacing:1px;">NO ACTIVE BROADCAST</div>
                 </div>
 
-                <div class="control-card blue-glow">
+                <div class="control-card blue-glow" style="margin-bottom:18px;">
                     <span class="ctrl-label">LIVE USER ACTIVITY</span>
                     <div class="live-users-list" id="liveUsersList">
                         <div style="color:#4a2a2a; font-size:0.7rem; padding:4px 0;">NO ACTIVE USERS</div>
+                    </div>
+                </div>
+
+                <div class="owner-controls">
+                    <div class="control-card blue-glow">
+                        <span class="ctrl-label">USER MANAGEMENT</span>
+                        <input type="email" id="ownerUserEmail" placeholder="USER EMAIL" value="">
+                        <select id="ownerUserRole">
+                            <option value="viewer">VIEWER</option>
+                            <option value="moderator">MODERATOR</option>
+                            <option value="admin">ADMIN</option>
+                        </select>
+                        <button class="btn-owner btn-blue" id="ownerUpdateRole">UPDATE ROLE</button>
+                        <button class="btn-owner btn-danger" id="ownerBanUser" style="margin-top:6px;">BAN USER</button>
+                        <button class="btn-owner btn-danger" id="ownerDeleteUser" style="margin-top:4px;">DELETE USER</button>
+                        <input type="text" id="ownerSearchUser" placeholder="SEARCH USER BY EMAIL" style="margin-top:8px;">
+                        <button class="btn-owner btn-blue" id="ownerSearchBtn" style="margin-top:4px;">SEARCH</button>
+                    </div>
+
+                    <div class="control-card blue-glow">
+                        <span class="ctrl-label">CONTENT CONTROL</span>
+                        <input type="text" id="ownerProjectId" placeholder="PROJECT ID" value="">
+                        <select id="ownerContentAction">
+                            <option value="remove">REMOVE</option>
+                            <option value="flag">FLAG</option>
+                            <option value="restore">RESTORE</option>
+                        </select>
+                        <button class="btn-owner btn-blue" id="ownerContentExecute">EXECUTE</button>
+                        <button class="btn-owner btn-danger" id="ownerClearAll" style="margin-top:6px;">CLEAR ALL PROJECTS</button>
+                        <button class="btn-owner btn-blue" id="ownerViewUserProjects" style="margin-top:4px;">VIEW USER PROJECTS</button>
+                    </div>
+
+                    <div class="control-card blue-glow">
+                        <span class="ctrl-label">SYSTEM CONTROL</span>
+                        <select id="ownerSystemMode">
+                            <option value="normal">NORMAL</option>
+                            <option value="maintenance">MAINTENANCE</option>
+                            <option value="readonly">READ-ONLY</option>
+                        </select>
+                        <button class="btn-owner btn-blue" id="ownerSetMode">APPLY MODE</button>
+                        <button class="btn-owner btn-green" id="ownerBackupBtn" style="margin-top:6px;">BACKUP</button>
+                        <button class="btn-owner btn-blue" id="ownerGenerateReport" style="margin-top:4px;">REPORT</button>
+                        <button class="btn-owner btn-danger" id="ownerResetData" style="margin-top:6px;">RESET ALL</button>
                     </div>
                 </div>
 
@@ -1343,7 +1310,11 @@
         // ============================================================
         // COMPLETE FS G.A SiTe SYSTEM - LOCAL STORAGE MODE
         // ============================================================
-        console.log('🔥 FS G.A SiTe // SYSTEM ONLINE');
+        console.log('FS G.A SiTe // SYSTEM ONLINE');
+        console.log('No email required - Just username and password');
+        console.log('Build ANY app or game with HTML, CSS, JavaScript');
+        console.log('Download APK directly to your phone');
+        console.log('Push updates through the website');
         
         // DOM REFS
         const usernameInput = document.getElementById('usernameInput');
@@ -1363,7 +1334,6 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const shareBtn = document.getElementById('shareBtn');
         const pushUpdateBtn = document.getElementById('pushUpdateBtn');
-        const checkUpdateBtn = document.getElementById('checkUpdateBtn');
         const downloadStatus = document.getElementById('downloadStatus');
         const appIdDisplay = document.getElementById('appIdDisplay');
         const projectNameInput = document.getElementById('projectNameInput');
@@ -1388,19 +1358,23 @@
             const time = new Date().toUTCString().split(' ')[4];
             const line = document.createElement('div');
             line.className = 'line';
-            line.innerHTML = `<span class="time">[${time}]</span> ${blue ? '<span class="blue-text">' + message + '</span>' : message}`;
+            line.innerHTML = `<span class="time">[${time}]</span> ${blue ? '<span class="blue-text">' + message + '</span>' : highlight ? '<span class="highlight">' + message + '</span>' : message}`;
             systemLog.prepend(line);
             if (systemLog.children.length > 15) systemLog.removeChild(systemLog.lastChild);
         }
         
         function updateClock() {
             const now = new Date();
-            clockDisplay.textContent = now.toUTCString().split(' ')[4];
+            if (clockDisplay) {
+                clockDisplay.textContent = now.toUTCString().split(' ')[4];
+            }
         }
         setInterval(updateClock, 1000);
         updateClock();
         
-        function getCode() { return codeEditor.value; }
+        function getCode() {
+            return codeEditor.value;
+        }
         
         function getFullHtml() {
             const code = getCode();
@@ -1490,16 +1464,6 @@
             localStorage.setItem('fsga_downloads', count.toString());
         }
         
-        function isNewerVersion(version1, version2) {
-            const v1 = version1.split('.').map(Number);
-            const v2 = version2.split('.').map(Number);
-            for (let i = 0; i < 3; i++) {
-                if ((v1[i] || 0) > (v2[i] || 0)) return true;
-                if ((v1[i] || 0) < (v2[i] || 0)) return false;
-            }
-            return false;
-        }
-        
         // ============================================================
         // SNIPPETS
         // ============================================================
@@ -1509,9 +1473,7 @@
             'canvas': `<!-- CANVAS DRAWING -->\n<canvas id="myCanvas" width="800" height="500"></canvas>\n<script>\nconst canvas = document.getElementById('myCanvas');\nif (canvas) {\n  const ctx = canvas.getContext('2d');\n  ctx.fillStyle = '#ff0000';\n  ctx.fillRect(50, 50, 100, 100);\n  ctx.fillStyle = '#00ff00';\n  ctx.beginPath();\n  ctx.arc(300, 150, 50, 0, Math.PI * 2);\n  ctx.fill();\n}\n<\/script>`,
             'form': `<!-- FORM -->\n<form id="myForm">\n  <input type="text" id="nameInput" placeholder="Your Name">\n  <button type="submit">SUBMIT</button>\n</form>\n<div id="greeting"></div>\n<script>\ndocument.getElementById('myForm').addEventListener('submit', function(e) {\n  e.preventDefault();\n  const name = document.getElementById('nameInput').value;\n  document.getElementById('greeting').innerHTML = '<h2>Hello, ' + name + '!</h2>';\n});\n<\/script>`,
             'animation': `<!-- ANIMATION -->\n<div id="box" style="width:50px;height:50px;background:#ff0;position:relative;"></div>\n<script>\nlet pos = 0;\nlet dir = 1;\nfunction animate() {\n  pos += 2 * dir;\n  if (pos > 300 || pos < 0) dir *= -1;\n  const box = document.getElementById('box');\n  if (box) box.style.left = pos + 'px';\n  requestAnimationFrame(animate);\n}\nanimate();\n<\/script>`,
-            'localstorage': `<!-- LOCAL STORAGE -->\n<input type="text" id="saveInput" placeholder="Enter something">\n<button id="saveBtn">SAVE</button>\n<button id="loadBtn">LOAD</button>\n<div id="output"></div>\n<script>\ndocument.getElementById('saveBtn').addEventListener('click', function() {\n  const value = document.getElementById('saveInput').value;\n  localStorage.setItem('myData', value);\n  alert('Saved!');\n});\ndocument.getElementById('loadBtn').addEventListener('click', function() {\n  const data = localStorage.getItem('myData');\n  document.getElementById('output').innerHTML = '<p>Saved: ' + data + '</p>';\n});\n<\/script>`,
-            'game': `<!-- FULL GAME TEMPLATE -->\n<style>\n  body { margin:0; background:#0a0a0a; display:flex; justify-content:center; align-items:center; height:100vh; font-family:monospace; }\n  canvas { border:2px solid #4a8aff; box-shadow:0 0 40px rgba(0,80,255,0.2); }\n</style>\n<canvas id="game" width="800" height="400"></canvas>\n<script>\n  const canvas = document.getElementById('game');\n  const ctx = canvas.getContext('2d');\n  let score = 0;\n  let gameOver = false;\n  \n  // Player\n  const player = { x: 50, y: 200, width: 20, height: 60, speed: 5 };\n  \n  // Ball\n  const ball = { x: 400, y: 200, radius: 10, dx: 4, dy: 3 };\n  \n  // Controls\n  let upPressed = false, downPressed = false;\n  document.addEventListener('keydown', (e) => {\n    if (e.key === 'ArrowUp') upPressed = true;\n    if (e.key === 'ArrowDown') downPressed = true;\n  });\n  document.addEventListener('keyup', (e) => {\n    if (e.key === 'ArrowUp') upPressed = false;\n    if (e.key === 'ArrowDown') downPressed = false;\n  });\n  \n  function gameLoop() {\n    if (gameOver) {\n      ctx.fillStyle = '#0a0a0a';\n      ctx.fillRect(0, 0, canvas.width, canvas.height);\n      ctx.fillStyle = '#b02b2b';\n      ctx.font = '40px monospace';\n      ctx.textAlign = 'center';\n      ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);\n      ctx.fillStyle = '#4a8aff';\n      ctx.font = '20px monospace';\n      ctx.fillText('Score: ' + score, canvas.width/2, canvas.height/2 + 50);\n      return;\n    }\n    \n    // Move player\n    if (upPressed && player.y > 0) player.y -= player.speed;\n    if (downPressed && player.y < canvas.height - player.height) player.y += player.speed;\n    \n    // Move ball\n    ball.x += ball.dx;\n    ball.y += ball.dy;\n    \n    // Ball wall collision\n    if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {\n      ball.dy = -ball.dy;\n    }\n    \n    // Ball player collision\n    if (ball.x - ball.radius < player.x + player.width &&\n        ball.y > player.y && ball.y < player.y + player.height) {\n      ball.dx = -ball.dx;\n      score++;\n    }\n    \n    // Ball miss\n    if (ball.x + ball.radius < 0) {\n      gameOver = true;\n    }\n    \n    // Draw\n    ctx.fillStyle = '#0a0a0a';\n    ctx.fillRect(0, 0, canvas.width, canvas.height);\n    \n    // Player\n    ctx.fillStyle = '#4a8aff';\n    ctx.shadowColor = '#4a8aff';\n    ctx.shadowBlur = 15;\n    ctx.fillRect(player.x, player.y, player.width, player.height);\n    ctx.shadowBlur = 0;\n    \n    // Ball\n    ctx.fillStyle = '#b02b2b';\n    ctx.shadowColor = '#b02b2b';\n    ctx.shadowBlur = 20;\n    ctx.beginPath();\n    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);\n    ctx.fill();\n    ctx.shadowBlur = 0;\n    \n    // Score\n    ctx.fillStyle = '#4a8aff';\n    ctx.font = '24px monospace';\n    ctx.textAlign = 'left';\n    ctx.fillText('Score: ' + score, 10, 30);\n    \n    requestAnimationFrame(gameLoop);\n  }\n  \n  gameLoop();\n<\/script>`,
-            'update-checker': `<!-- UPDATE CHECKER APP -->\n<style>\n  body { background: #0a0a0a; font-family: monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }\n  .container { background: #1a0a0a; border: 2px solid #4a8aff; padding: 40px; max-width: 500px; width: 100%; box-shadow: 0 0 60px rgba(0,80,255,0.1); }\n  h1 { color: #b02b2b; text-align: center; letter-spacing: 4px; }\n  .app-id-input { display: flex; gap: 10px; margin: 20px 0; }\n  input { flex: 1; background: #0a0303; border: 1px solid #2a1212; padding: 10px; color: #c0b0b0; font-family: monospace; }\n  button { background: #0a0303; border: 1px solid #4a8aff; color: #4a8aff; padding: 10px 20px; font-family: monospace; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 2px; }\n  button:hover { background: #0a1a3a; box-shadow: 0 0 30px rgba(0,80,255,0.1); }\n  .info { color: #4a3a3a; text-align: center; margin-top: 20px; font-size: 12px; }\n  .result { margin-top: 20px; padding: 15px; background: #0a0303; border: 1px solid #1a0808; }\n  .has-update { color: #4a8a4a; }\n  .no-update { color: #4a3a3a; }\n  .error { color: #b02b2b; }\n</style>\n<div class="container">\n  <h1>UPDATE CHECKER</h1>\n  <p style="color:#4a3a3a;text-align:center;">Enter your App ID to check for updates</p>\n  <div class="app-id-input">\n    <input type="text" id="appIdInput" placeholder="Enter App ID (e.g., FSGA-ABC123-XYZ789)">\n    <button onclick="checkForUpdate()">CHECK</button>\n  </div>\n  <div class="result" id="resultDisplay">\n    <div style="color:#4a3a3a;">Enter an App ID to check for updates</div>\n  </div>\n  <div class="info">FS G.A SiTe // Update System v1.0</div>\n</div>\n<script>\n  function checkForUpdate() {\n    const appId = document.getElementById('appIdInput').value.trim();\n    const result = document.getElementById('resultDisplay');\n    \n    if (!appId) {\n      result.innerHTML = '<div class="error">Please enter an App ID</div>';\n      return;\n    }\n    \n    result.innerHTML = '<div style="color:#4a8aff;">Checking for updates...</div>';\n    \n    try {\n      const apps = JSON.parse(localStorage.getItem('fsga_apps') || '{}');\n      const appData = apps[appId];\n      \n      if (!appData) {\n        result.innerHTML = '<div class="error">App not found. Please check your App ID.</div>';\n        return;\n      }\n      \n      const userApp = JSON.parse(localStorage.getItem(\\`fsga_user_app_\\${appId}\\`) || '{}');\n      const userVersion = userApp.version || '0.0.0';\n      const currentVersion = appData.version || '1.0.0';\n      \n      const v1 = currentVersion.split('.').map(Number);\n      const v2 = userVersion.split('.').map(Number);\n      let hasUpdate = false;\n      for (let i = 0; i < 3; i++) {\n        if ((v1[i] || 0) > (v2[i] || 0)) { hasUpdate = true; break; }\n        if ((v1[i] || 0) < (v2[i] || 0)) break;\n      }\n      \n      if (hasUpdate) {\n        result.innerHTML = \\`\n          <div class="has-update">\n            <p style="font-size:18px;font-weight:bold;color:#4a8aff;">UPDATE AVAILABLE!</p>\n            <p style="color:#c0b0b0;">App: <span style="color:#4a8aff;">\\${appData.name}</span></p>\n            <p>Your version: <span style="color:#4a3a3a;">\\${userVersion}</span></p>\n            <p>Latest version: <span style="color:#4a8aff;">\\${currentVersion}</span></p>\n            <p style="margin-top:10px;color:#4a8a4a;">Click below to download the update</p>\n            <button onclick="downloadUpdate('\\${appId}')" style="margin-top:10px;border-color:#4a8a4a;color:#4a8a4a;">DOWNLOAD UPDATE</button>\n          </div>\n        \`;\n      } else {\n        result.innerHTML = \\`\n          <div class="no-update">\n            <p style="color:#4a8aff;">You have the latest version!</p>\n            <p>App: <span style="color:#4a8aff;">\\${appData.name}</span></p>\n            <p>Version: <span style="color:#4a8aff;">\\${currentVersion}</span></p>\n          </div>\n        \`;\n      }\n      \n      localStorage.setItem(\\`fsga_last_check_\\${appId}\\`, JSON.stringify({\n        checkedAt: new Date().toISOString(),\n        version: currentVersion\n      }));\n      \n    } catch (error) {\n      result.innerHTML = '<div class="error">Error: ' + error.message + '</div>';\n    }\n  }\n  \n  function downloadUpdate(appId) {\n    try {\n      const apps = JSON.parse(localStorage.getItem('fsga_apps') || '{}');\n      const appData = apps[appId];\n      \n      if (!appData) {\n        alert('App not found!');\n        return;\n      }\n      \n      const userApp = {\n        appId: appId,\n        version: appData.version,\n        updatedAt: new Date().toISOString()\n      };\n      localStorage.setItem(\\`fsga_user_app_\\${appId}\\`, JSON.stringify(userApp));\n      localStorage.setItem(\\`fsga_app_code_\\${appId}\\`, appData.code);\n      \n      alert('App updated to version ' + appData.version + '!\\n\\nThe update has been saved to your device.');\n      \n      const result = document.getElementById('resultDisplay');\n      result.innerHTML = \\`\n        <div class="has-update">\n          <p style="color:#4a8a4a;font-size:18px;">UPDATE DOWNLOADED!</p>\n          <p>App: <span style="color:#4a8aff;">\\${appData.name}</span></p>\n          <p>New Version: <span style="color:#4a8aff;">\\${appData.version}</span></p>\n          <p style="color:#4a3a3a;font-size:12px;margin-top:10px;">The app has been updated on your device.</p>\n        </div>\n      \`;\n      \n    } catch (error) {\n      alert('Error downloading update: ' + error.message);\n    }\n  }\n  \n  const urlParams = new URLSearchParams(window.location.search);\n  const appId = urlParams.get('app');\n  if (appId) {\n    document.getElementById('appIdInput').value = appId;\n    setTimeout(checkForUpdate, 500);\n  }\n<\/script>`
+            'localstorage': `<!-- LOCAL STORAGE -->\n<input type="text" id="saveInput" placeholder="Enter something">\n<button id="saveBtn">SAVE</button>\n<button id="loadBtn">LOAD</button>\n<div id="output"></div>\n<script>\ndocument.getElementById('saveBtn').addEventListener('click', function() {\n  const value = document.getElementById('saveInput').value;\n  localStorage.setItem('myData', value);\n  alert('Saved!');\n});\ndocument.getElementById('loadBtn').addEventListener('click', function() {\n  const data = localStorage.getItem('myData');\n  document.getElementById('output').innerHTML = '<p>Saved: ' + data + '</p>';\n});\n<\/script>`
         };
         
         // ============================================================
@@ -1621,7 +1583,7 @@
             signOutBtn.style.display = 'inline-block';
             
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('disabled'));
-            document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen, .btn-update, .btn-check-update').forEach(el => el.disabled = false);
+            document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen, .btn-update').forEach(el => el.disabled = false);
             
             addLog('USER SIGNED IN: ' + username, false, true);
             loadProjects();
@@ -1640,7 +1602,7 @@
             signOutBtn.style.display = 'none';
             
             document.querySelectorAll('.nav-item').forEach(el => el.classList.add('disabled'));
-            document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen, .btn-update, .btn-check-update').forEach(el => el.disabled = true);
+            document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen, .btn-update').forEach(el => el.disabled = true);
             
             projectsContainer.innerHTML = '<div style="color:#4a2a2a; font-size:0.8rem; padding:20px; text-align:center; width:100%;">SIGN IN TO SEE YOUR PROJECTS</div>';
             addLog('USER SIGNED OUT');
@@ -1748,7 +1710,7 @@
                 projectsContainer.innerHTML = '<div style="color:#4a2a2a; font-size:0.8rem; padding:20px; text-align:center; width:100%;">NO PROJECTS SAVED</div>';
                 return;
             }
-                        
+            
             projectIds.forEach(id => {
                 const data = userProjects[id];
                 const card = document.createElement('div');
@@ -1760,7 +1722,6 @@
                     <div class="app-id">APP ID: ${data.appId || 'No ID'}</div>
                     <div class="card-actions">
                         <button class="btn-appid" data-id="${id}">GET ID</button>
-                        <button class="btn-download-app" data-id="${id}">DOWNLOAD</button>
                         <button class="btn-delete" data-id="${id}">DELETE</button>
                     </div>
                 `;
@@ -1775,13 +1736,6 @@
                     e.stopPropagation();
                     if (data.appId) showAppIdModal(data.appId);
                     else alert('This project has no App ID.');
-                });
-                
-                const downloadBtn = card.querySelector('.btn-download-app');
-                downloadBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    loadProject(id);
-                    setTimeout(() => downloadApk(), 500);
                 });
                 
                 const delBtn = card.querySelector('.btn-delete');
@@ -1876,79 +1830,6 @@
         }
         
         // ============================================================
-        // CHECK UPDATE (USER SIDE)
-        // ============================================================
-        function checkForUpdate() {
-            if (!currentAppId) {
-                alert('No App ID found. Please save your project first.');
-                return;
-            }
-            
-            const apps = getApps();
-            const appData = apps[currentAppId];
-            
-            if (!appData) {
-                alert('App not found in registry. Please save your project.');
-                return;
-            }
-            
-            const userApp = JSON.parse(localStorage.getItem('fsga_user_app_' + currentAppId) || '{}');
-            const userVersion = userApp.version || '0.0.0';
-            const latestVersion = appData.version || '1.0.0';
-            const hasUpdate = isNewerVersion(latestVersion, userVersion);
-            
-            const modal = document.createElement('div');
-            modal.className = 'fsga-modal';
-            modal.innerHTML = `
-                <div class="fsga-modal-content">
-                    <h2>${hasUpdate ? 'UPDATE AVAILABLE' : 'UP TO DATE'}</h2>
-                    <div style="background:#0f0505;border:1px solid #2a1212;padding:15px;margin:15px 0;text-align:left;">
-                        <div style="color:#4a3a3a;">App: <span style="color:#4a8aff;">${appData.name}</span></div>
-                        <div style="color:#4a3a3a;">Current Version: <span style="color:#c0b0b0;">${userVersion}</span></div>
-                        <div style="color:#4a3a3a;">Latest Version: <span style="color:#4a8aff;">${latestVersion}</span></div>
-                        ${hasUpdate ? '<div style="color:#4a8a4a;margin-top:10px;">New update is available!</div>' : '<div style="color:#4a3a3a;margin-top:10px;">You have the latest version.</div>'}
-                    </div>
-                    ${hasUpdate ? `
-                        <button class="btn-modal" style="border-color:#2a6a3a;color:#4a8a4a;" onclick="downloadUserUpdate('${currentAppId}')">DOWNLOAD UPDATE</button>
-                    ` : ''}
-                    <button class="btn-modal btn-modal-close" onclick="this.closest('.fsga-modal').remove()">CLOSE</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            addLog('CHECKED FOR UPDATES: ' + currentAppId + ' (Current: ' + userVersion + ', Latest: ' + latestVersion + ')', false, true);
-        }
-        
-        function downloadUserUpdate(appId) {
-            const apps = getApps();
-            const appData = apps[appId];
-            
-            if (!appData) {
-                alert('App not found!');
-                return;
-            }
-            
-            const userApp = {
-                appId: appId,
-                version: appData.version,
-                updatedAt: new Date().toISOString()
-            };
-            localStorage.setItem('fsga_user_app_' + appId, JSON.stringify(userApp));
-            localStorage.setItem('fsga_app_code_' + appId, appData.code);
-            
-            document.querySelector('.fsga-modal')?.remove();
-            
-            alert('UPDATE DOWNLOADED!\n\nApp: ' + appData.name + '\nVersion: ' + appData.version + '\n\nThe update has been saved to your device.');
-            addLog('USER DOWNLOADED UPDATE: ' + appId + ' v' + appData.version, false, true);
-            
-            codeEditor.value = appData.code;
-            projectNameInput.value = appData.name;
-            currentVersion = appData.version;
-            updateAppIdDisplay();
-            runPreview();
-        }
-        
-        // ============================================================
         // RUN PREVIEW
         // ============================================================
         function runPreview() {
@@ -1966,66 +1847,14 @@
         }
         
         // ============================================================
-        // SHOW APK INSTRUCTIONS - ALL IN ONE TAB
-        // ============================================================
-        function showApkInstructions(appName, fileName) {
-            const overlay = document.createElement('div');
-            overlay.className = 'apk-instructions';
-            overlay.innerHTML = `
-                <div class="box">
-                    <h2>📱 APP READY!</h2>
-                    
-                    <div class="file-info">
-                        <div class="label">File Downloaded:</div>
-                        <div class="value">${fileName}</div>
-                        <div class="sub">Check your Downloads folder</div>
-                    </div>
-                    
-                    <div class="step-title">Now convert to APK in 3 simple steps:</div>
-                    
-                    <div class="steps">
-                        <div class="step">
-                            <div class="num">1</div>
-                            <span>Click the <span class="highlight">PWA Builder</span> button below</span>
-                        </div>
-                        <div class="step">
-                            <div class="num">2</div>
-                            <span>Upload the <span class="highlight">HTML file</span> you just downloaded</span>
-                        </div>
-                        <div class="step">
-                            <div class="num">3</div>
-                            <span>Click <span class="highlight-green">"Generate APK"</span> and download</span>
-                        </div>
-                    </div>
-                    
-                    <div class="btn-row">
-                        <a href="https://www.pwabuilder.com/" target="_blank" class="btn-pwa">⚡ PWA BUILDER</a>
-                        <button class="btn-close" onclick="this.closest('.apk-instructions').remove()">CLOSE</button>
-                    </div>
-                    
-                    <div class="footer-note">
-                        💡 The HTML file is in your <span class="hl">Downloads</span> folder
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-            
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.remove();
-                }
-            });
-        }
-        
-        // ============================================================
-        // DOWNLOAD APK - ALL IN ONE TAB
+        // DOWNLOAD APK
         // ============================================================
         async function downloadApk() {
             const fullHtml = getFullHtml();
             const name = projectNameInput.value.trim() || 'MyApp';
             const cleanName = name.replace(/[^a-zA-Z0-9 ]/g, '').trim();
             
-            downloadStatus.innerHTML = 'Preparing your app...';
+            downloadStatus.innerHTML = '📱 BUILDING APK... PLEASE WAIT';
             downloadStatus.style.color = '#4a8aff';
             
             try {
@@ -2035,12 +1864,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#4a8aff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="data:application/json,${encodeURIComponent(JSON.stringify({
         name: cleanName,
         short_name: cleanName.substring(0, 12),
-        description: 'App built with FS G.A SiTe',
         start_url: '/',
         display: 'standalone',
         background_color: '#0a0a0a',
@@ -2075,10 +1901,101 @@
                 document.body.removeChild(a);
                 setTimeout(() => URL.revokeObjectURL(url), 5000);
                 
-                downloadStatus.innerHTML = `✅ HTML DOWNLOADED! <span style="font-size:0.8rem;color:#4a8aff;">${fileName}</span>`;
+                downloadStatus.innerHTML = '✅ HTML DOWNLOADED! <span style="font-size:0.8rem;color:#4a8aff;">' + fileName + '</span>';
                 downloadStatus.style.color = '#3a8a3a';
                 
-                showApkInstructions(cleanName, fileName);
+                // Show popup with instructions
+                const popup = document.createElement('div');
+                popup.style.cssText = `
+                    position: fixed;
+                    top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.95);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 999999;
+                `;
+                popup.innerHTML = `
+                    <div style="
+                        background: #1a0a0a;
+                        border: 2px solid #4a8aff;
+                        padding: 40px;
+                        max-width: 500px;
+                        width: 90%;
+                        border-radius: 8px;
+                        max-height: 90vh;
+                        overflow-y: auto;
+                    ">
+                        <h2 style="color: #4a8aff; text-align: center; letter-spacing: 3px; margin-top: 0;">
+                            📱 APP READY!
+                        </h2>
+                        <div style="background: #0a0303; border: 1px solid #2a1212; padding: 15px; margin: 15px 0; border-radius: 4px;">
+                            <div style="color: #4a3a3a; font-size: 0.8rem;">File Downloaded:</div>
+                            <div style="color: #4a8aff; font-size: 1rem; word-break: break-all;">${fileName}</div>
+                            <div style="color: #4a3a3a; font-size: 0.7rem; margin-top: 5px;">Check your Downloads folder</div>
+                        </div>
+                        <div style="background: #0a0303; border: 1px solid #1a0808; padding: 15px; margin: 10px 0; border-radius: 4px;">
+                            <div style="display: flex; align-items: center; margin: 8px 0; color: #8a7a7a;">
+                                <span style="background: #4a8aff; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">1</span>
+                                <span>Click <span style="color: #4a8aff;">PWA Builder</span> below</span>
+                            </div>
+                            <div style="display: flex; align-items: center; margin: 8px 0; color: #8a7a7a;">
+                                <span style="background: #4a8aff; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">2</span>
+                                <span>Upload the <span style="color: #4a8aff;">HTML file</span> you downloaded</span>
+                            </div>
+                            <div style="display: flex; align-items: center; margin: 8px 0; color: #8a7a7a;">
+                                <span style="background: #4a8aff; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">3</span>
+                                <span>Click <span style="color: #4a8a4a;">"Generate APK"</span></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap;">
+                            <a href="https://www.pwabuilder.com/" target="_blank" style="
+                                flex: 1;
+                                background: #0a0303;
+                                border: 2px solid #4a8aff;
+                                color: #4a8aff;
+                                padding: 12px 20px;
+                                text-align: center;
+                                text-decoration: none;
+                                border-radius: 4px;
+                                font-family: 'Courier New', monospace;
+                                font-weight: 600;
+                                letter-spacing: 2px;
+                                font-size: 0.8rem;
+                                transition: 0.3s;
+                                cursor: pointer;
+                            " onmouseover="this.style.background='#0a1a3a'" onmouseout="this.style.background='#0a0303'">
+                                ⚡ PWA BUILDER
+                            </a>
+                            <button onclick="this.closest('div[style*=\\'position: fixed\\']').remove()" style="
+                                flex: 1;
+                                background: #0a0303;
+                                border: 2px solid #3a1515;
+                                color: #6a5a5a;
+                                padding: 12px 20px;
+                                border-radius: 4px;
+                                font-family: 'Courier New', monospace;
+                                font-weight: 600;
+                                letter-spacing: 2px;
+                                font-size: 0.8rem;
+                                cursor: pointer;
+                                transition: 0.3s;
+                            " onmouseover="this.style.borderColor='#6a2222'; this.style.color='#b0a0a0'" onmouseout="this.style.borderColor='#3a1515'; this.style.color='#6a5a5a'">
+                                CLOSE
+                            </button>
+                        </div>
+                        <div style="text-align: center; color: #4a3a3a; font-size: 0.65rem; margin-top: 10px; letter-spacing: 1px;">
+                            💡 The HTML file is in your Downloads folder
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(popup);
+                
+                popup.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.remove();
+                    }
+                });
                 
                 addLog('APP PREPARED: ' + name + ' v' + currentVersion, false, true);
                 
@@ -2246,7 +2163,6 @@
         downloadBtn.addEventListener('click', downloadApk);
         shareBtn.addEventListener('click', shareProject);
         pushUpdateBtn.addEventListener('click', pushUpdate);
-        checkUpdateBtn.addEventListener('click', checkForUpdate);
         exportZipBtn.addEventListener('click', exportAsHtml);
         fullscreenBtn.addEventListener('click', openFullscreen);
         
@@ -2360,7 +2276,6 @@
         addLog('LOCAL MODE ACTIVE // No email required', false, true);
         addLog('Build ANY app or game with HTML, CSS, JavaScript', false, true);
         addLog('Push updates through the website', false, true);
-        addLog('Users can check for updates with App ID', false, true);
         console.log('All systems ready!');
         console.log('OWNER PASSWORD: FS Four Seven');
         
@@ -2373,24 +2288,9 @@
             signUpBtn.style.display = 'none';
             signOutBtn.style.display = 'inline-block';
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('disabled'));
-            document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen, .btn-update, .btn-check-update').forEach(el => el.disabled = false);
+            document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen, .btn-update').forEach(el => el.disabled = false);
             loadProjects();
             addLog('AUTO SIGNED IN: ' + currentUser.username, false, true);
-        }
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const appIdParam = urlParams.get('app');
-        if (appIdParam) {
-            setTimeout(() => {
-                const apps = getApps();
-                if (apps[appIdParam]) {
-                    alert('App ID found in URL!\n\nApp: ' + apps[appIdParam].name + '\nVersion: ' + apps[appIdParam].version + '\n\nClick "CHECK UPDATE" to see if you have the latest version.');
-                    currentAppId = appIdParam;
-                    currentVersion = apps[appIdParam].version;
-                    updateAppIdDisplay();
-                    checkForUpdate();
-                }
-            }, 1000);
         }
         
         loadBroadcastHistory();
