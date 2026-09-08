@@ -1,261 +1,123 @@
-name: FOUR × SEVEN APK Builder
+name: Build APK
 
 on:
-repository_dispatch:
-types:
-- four-seven-build
-
-permissions:
-contents: read
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: 'App name'
+        required: true
+        default: 'MyApp'
 
 jobs:
-build-apk:
-runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-env:
-  JOB_ID: ${{ github.event.client_payload.jobId }}
-  APP_NAME: ${{ github.event.client_payload.appName }}
-  PACKAGE_NAME: ${{ github.event.client_payload.packageName }}
-  API_BASE_URL: ${{ github.event.client_payload.apiBaseUrl }}
-  BUILDER_API_SECRET: ${{ secrets.BUILDER_API_SECRET }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-steps:
+      - name: Install dependencies
+        run: |
+          npm install -g pwabuilder
+          npm install -g http-server
 
-  - name: Checkout repository
-    uses: actions/checkout@v4
-
-  - name: Setup Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: 20
-
-  - name: Setup Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: "17"
-
-  - name: Show build information
-    run: |
-      echo "======================================"
-      echo "⟦ FOUR × SEVEN ⟧ APK BUILDER"
-      echo "======================================"
-      echo "App: $APP_NAME"
-      echo "Package: $PACKAGE_NAME"
-      echo "Job: $JOB_ID"
-      echo "======================================"
-
-  - name: Tell API build started
-    run: |
-      curl --fail-with-body -sS \
-        -X POST \
-        -H "Content-Type: application/json" \
-        -H "x-builder-secret: $BUILDER_API_SECRET" \
-        "$API_BASE_URL/api/internal/progress/$JOB_ID" \
-        -d '{
-          "progress": 20,
-          "statusText": "Preparing",
-          "message": "Preparing your Android project..."
-        }'
-
-  - name: Download project
-    run: |
-      mkdir -p input
-      cd input
-
-      curl --fail-with-body -sS \
-        -L \
-        -OJ \
-        -H "x-builder-secret: $BUILDER_API_SECRET" \
-        "$API_BASE_URL/api/internal/project/$JOB_ID"
-
-      echo "Downloaded project:"
-      ls -lah
-
-  - name: Tell API project downloaded
-    run: |
-      curl --fail-with-body -sS \
-        -X POST \
-        -H "Content-Type: application/json" \
-        -H "x-builder-secret: $BUILDER_API_SECRET" \
-        "$API_BASE_URL/api/internal/progress/$JOB_ID" \
-        -d '{
-          "progress": 30,
-          "statusText": "Project Ready",
-          "message": "Project downloaded. Preparing web files..."
-        }'
-
-  - name: Prepare web project
-    shell: bash
-    run: |
-      set -e
-
-      mkdir -p web
-
-      PROJECT_FILE="$(find input -maxdepth 1 -type f | head -n 1)"
-
-      if [ -z "$PROJECT_FILE" ]; then
-        echo "No project file was downloaded."
-        exit 1
-      fi
-
-      echo "Project file: $PROJECT_FILE"
-
-      case "$PROJECT_FILE" in
-        *.zip|*.ZIP)
-          echo "ZIP project detected."
-
-          mkdir -p extracted
-
-          # Check ZIP paths before extraction.
-          if unzip -Z1 "$PROJECT_FILE" | grep -E '(^/|(^|/)\.\.(/|$))' >/dev/null; then
-            echo "Unsafe ZIP paths detected."
-            exit 1
+      - name: Get app name
+        id: appname
+        run: |
+          if [ "${{ github.event.inputs.app_name }}" != "" ]; then
+            echo "APP_NAME=${{ github.event.inputs.app_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "APP_NAME=MyApp" >> $GITHUB_OUTPUT
           fi
 
-          unzip -q "$PROJECT_FILE" -d extracted
-
-          INDEX_FILE="$(find extracted -type f -iname 'index.html' | head -n 1)"
-
-          if [ -z "$INDEX_FILE" ]; then
-            echo "ZIP project does not contain index.html."
-            exit 1
+      - name: Create PWA files
+        run: |
+          mkdir -p app_build
+          
+          # Copy index.html if it exists
+          if [ -f "index.html" ]; then
+            cp index.html app_build/index.html
+          else
+            echo '<h1>App</h1>' > app_build/index.html
           fi
+          
+          # Create manifest.json
+          cat > app_build/manifest.json << EOF
+          {
+            "name": "${{ steps.appname.outputs.APP_NAME }}",
+            "short_name": "${{ steps.appname.outputs.APP_NAME }}",
+            "description": "App built with FOUR x SEVEN",
+            "start_url": "/",
+            "display": "standalone",
+            "background_color": "#0a0a0a",
+            "theme_color": "#00ff41",
+            "icons": [
+              {
+                "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2300ff41'/><text x='50' y='70' text-anchor='middle' font-size='60' fill='black'>4</text></svg>",
+                "sizes": "192x192",
+                "type": "image/svg+xml"
+              },
+              {
+                "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2300ff41'/><text x='50' y='70' text-anchor='middle' font-size='60' fill='black'>4</text></svg>",
+                "sizes": "512x512",
+                "type": "image/svg+xml"
+              }
+            ]
+          }
+          EOF
+          
+          # Create service worker
+          cat > app_build/sw.js << EOF
+          self.addEventListener('install', function(e) {
+            e.waitUntil(
+              caches.open('app-cache-v1').then(function(cache) {
+                return cache.addAll(['/']);
+              })
+            );
+          });
+          self.addEventListener('fetch', function(e) {
+            e.respondWith(
+              caches.match(e.request).then(function(response) {
+                return response || fetch(e.request);
+              })
+            );
+          });
+          EOF
 
-          ROOT_DIR="$(dirname "$INDEX_FILE")"
+      - name: Build with PWABuilder
+        run: |
+          cd app_build
+          npx pwabuilder package --platform android --output ./output
 
-          cp -a "$ROOT_DIR"/. web/
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: app_build/output/*.apk
 
-          ;;
+      - name: Upload PWA files
+        uses: actions/upload-artifact@v4
+        with:
+          name: pwa-files
+          path: app_build/
 
-        *.html|*.HTML|*.htm|*.HTM)
-          echo "HTML project detected."
-
-          cp "$PROJECT_FILE" web/index.html
-
-          ;;
-
-        *)
-          echo "Unsupported project type."
-          exit 1
-          ;;
-      esac
-
-      if [ ! -f web/index.html ]; then
-        echo "index.html was not found."
-        exit 1
-      fi
-
-      echo "Web project ready:"
-      find web -maxdepth 2 -type f | head -100
-
-  - name: Tell API web project prepared
-    run: |
-      curl --fail-with-body -sS \
-        -X POST \
-        -H "Content-Type: application/json" \
-        -H "x-builder-secret: $BUILDER_API_SECRET" \
-        "$API_BASE_URL/api/internal/progress/$JOB_ID" \
-        -d '{
-          "progress": 40,
-          "statusText": "Building Android Project",
-          "message": "Creating the Android application..."
-        }'
-
-  - name: Create Capacitor Android project
-    run: |
-      set -e
-
-      mkdir -p builder
-      cd builder
-
-      npm init -y
-
-      npm install \
-        @capacitor/core@7 \
-        @capacitor/cli@7 \
-        @capacitor/android@7
-
-      npx cap init "$APP_NAME" "$PACKAGE_NAME" \
-        --web-dir=../web
-
-      npx cap add android
-
-      npx cap sync android
-
-  - name: Tell API Android project created
-    run: |
-      curl --fail-with-body -sS \
-        -X POST \
-        -H "Content-Type: application/json" \
-        -H "x-builder-secret: $BUILDER_API_SECRET" \
-        "$API_BASE_URL/api/internal/progress/$JOB_ID" \
-        -d '{
-          "progress": 60,
-          "statusText": "Compiling APK",
-          "message": "Compiling the Android application..."
-        }'
-
-  - name: Build release APK
-    working-directory: builder/android
-    run: |
-      chmod +x gradlew
-      ./gradlew assembleRelease --no-daemon
-
-  - name: Find APK
-    run: |
-      APK_PATH="$(find builder/android/app/build/outputs/apk/release -type f -name '*.apk' | head -n 1)"
-
-      if [ -z "$APK_PATH" ]; then
-        echo "APK was not created."
-        exit 1
-      fi
-
-      echo "APK_PATH=$APK_PATH" >> "$GITHUB_ENV"
-
-      echo "APK created:"
-      ls -lh "$APK_PATH"
-
-  - name: Tell API APK is ready
-    run: |
-      curl --fail-with-body -sS \
-        -X POST \
-        -H "Content-Type: application/json" \
-        -H "x-builder-secret: $BUILDER_API_SECRET" \
-        "$API_BASE_URL/api/internal/progress/$JOB_ID" \
-        -d '{
-          "progress": 90,
-          "statusText": "Uploading APK",
-          "message": "Uploading your finished APK..."
-        }'
-
-  - name: Upload APK to FOUR × SEVEN API
-    run: |
-      curl --fail-with-body -sS \
-        -X POST \
-        -H "x-builder-secret: $BUILDER_API_SECRET" \
-        -F "apk=@$APK_PATH;type=application/vnd.android.package-archive" \
-        "$API_BASE_URL/api/internal/complete/$JOB_ID"
-
-  - name: Build complete
-    run: |
-      echo "======================================"
-      echo "🎉 APK BUILD COMPLETE"
-      echo "======================================"
-      echo "App: $APP_NAME"
-      echo "Package: $PACKAGE_NAME"
-      echo "Job: $JOB_ID"
-      echo "======================================"
-
-  - name: Report build failure
-    if: failure()
-    run: |
-      MESSAGE="GitHub Actions Android build failed."
-
-      curl --fail-with-body -sS \
-        -X POST \
-        -H "Content-Type: application/json" \
-        -H "x-builder-secret: $BUILDER_API_SECRET" \
-        "$API_BASE_URL/api/internal/fail/$JOB_ID" \
-        -d "{\"message\":\"$MESSAGE\"}" \
-        || true
+      - name: Create release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            app_build/output/*.apk
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
