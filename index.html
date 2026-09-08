@@ -1,2304 +1,360 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FS G.A SiTe // APP & GAME BUILDER</title>
-    
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #0a0505;
-            background-image: radial-gradient(circle at 20% 30%, #1a0808 0%, #050101 95%);
-            font-family: 'Courier New', Courier, monospace;
-            min-height: 100vh;
-            color: #c0b0b0;
-            padding: 15px;
-        }
-        .system-shell {
-            max-width: 1500px;
-            margin: 0 auto;
-            background: rgba(8, 2, 2, 0.92);
-            border: 2px solid #4a1515;
-            box-shadow: 0 0 60px rgba(100, 0, 0, 0.2), 0 0 30px rgba(0, 50, 200, 0.1), inset 0 0 60px rgba(40, 0, 0, 0.1);
-            padding: 20px 22px 30px;
-            position: relative;
-        }
-        .system-shell::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 2px, transparent 2px, transparent 6px);
-            pointer-events: none;
-            z-index: 2;
-        }
-        .header-terminal {
-            border-bottom: 2px solid #3a0f0f;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .site-title {
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: 6px;
-            color: #b02b2b;
-            text-shadow: 0 0 20px #5f0000, 0 0 40px #2a0000, 0 0 60px rgba(0, 100, 255, 0.2);
-            text-transform: uppercase;
-        }
-        .site-title span { color: #6a1a1a; font-weight: 300; letter-spacing: 8px; }
-        .sys-status {
-            font-size: 0.7rem;
-            color: #6a3a3a;
-            border: 1px solid #2a0f0f;
-            padding: 6px 16px;
-            background: #0d0303;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 0 15px rgba(0, 50, 200, 0.05);
-        }
-        .sys-status i { font-style: normal; color: #b02b2b; animation: blink 1.2s infinite; }
-        @keyframes blink { 0% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
-        
-        .auth-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            background: #0a0303;
-            border: 1px solid #1f0a0a;
-            padding: 10px 16px;
-            margin-bottom: 18px;
-            box-shadow: 0 0 20px rgba(0, 50, 200, 0.05);
-        }
-        .auth-bar input {
-            background: #0f0505;
-            border: 1px solid #2a1212;
-            padding: 8px 14px;
-            color: #c0b0b0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            flex: 1 1 200px;
-            transition: 0.3s;
-        }
-        .auth-bar input:focus {
-            border-color: #2a6aaa;
-            box-shadow: 0 0 20px rgba(0, 80, 255, 0.15);
-            outline: none;
-        }
-        .auth-bar .btn-auth {
-            background: #1a0808;
-            border: 1px solid #3a1515;
-            color: #b0a0a0;
-            padding: 8px 22px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .auth-bar .btn-auth:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.1); }
-        .auth-bar .user-status {
-            color: #4a2a2a;
-            font-size: 0.7rem;
-            letter-spacing: 1px;
-            margin-left: auto;
-        }
-        .auth-bar .user-status.signed-in { color: #6a8a6a; }
-        .auth-bar .user-status.unverified { color: #8a6a3a; }
-        
-        .verification-banner {
-            background: #3a2a0a;
-            border: 1px solid #6a4a1a;
-            color: #b08a4a;
-            padding: 10px 16px;
-            text-align: center;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            display: none;
-        }
-        .verification-banner.active { display: block; }
-        
-        .broadcast-banner {
-            background: #0a1a2a;
-            border: 1px solid #2a6aaa;
-            color: #4a8aff;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            text-align: center;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            display: none;
-            box-shadow: 0 0 30px rgba(0, 80, 255, 0.15), inset 0 0 30px rgba(0, 80, 255, 0.05);
-            border-radius: 4px;
-            animation: pulseBlue 2s infinite;
-            position: relative;
-        }
-        .broadcast-banner.active { display: block; }
-        .broadcast-banner .broadcast-msg { color: #8ab4ff; font-size: 0.9rem; font-weight: 600; text-shadow: 0 0 20px rgba(0, 80, 255, 0.2); }
-        .broadcast-banner .broadcast-time { color: #4a6a8a; font-size: 0.6rem; margin-left: 12px; }
-        .broadcast-banner .btn-seen {
-            background: transparent;
-            border: 1px solid #2a6aaa;
-            color: #4a8aff;
-            padding: 4px 16px;
-            margin-left: 14px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            font-size: 0.6rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: 0.3s;
-            border-radius: 3px;
-        }
-        .broadcast-banner .btn-seen:hover { background: #0a1a3a; border-color: #4a8aff; box-shadow: 0 0 30px rgba(0, 80, 255, 0.2); }
-        
-        @keyframes pulseBlue {
-            0% { box-shadow: 0 0 20px rgba(0, 80, 255, 0.1), inset 0 0 20px rgba(0, 80, 255, 0.02); }
-            50% { box-shadow: 0 0 40px rgba(0, 80, 255, 0.2), inset 0 0 40px rgba(0, 80, 255, 0.05); }
-            100% { box-shadow: 0 0 20px rgba(0, 80, 255, 0.1), inset 0 0 20px rgba(0, 80, 255, 0.02); }
-        }
-        
-        .nav-menu {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            border-bottom: 1px solid #2a0a0a;
-            padding-bottom: 12px;
-            margin-bottom: 20px;
-        }
-        .nav-item {
-            background: transparent;
-            border: 1px solid #2a0f0f;
-            color: #8a7a7a;
-            padding: 8px 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: 0.2s;
-            background: #0d0505;
-        }
-        .nav-item:hover { background: #1f0808; border-color: #8f2222; color: #d0d0d0; box-shadow: 0 0 20px rgba(0, 80, 255, 0.05); }
-        .nav-item.active { background: #1f0a0a; border-color: #9f2a2a; color: #e0e0e0; box-shadow: 0 0 25px #3f0000, 0 0 30px rgba(0, 80, 255, 0.1); }
-        .nav-item.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-        
-        .panel { display: none; padding: 10px 0; animation: fadePanel 0.3s ease; }
-        .panel.active { display: block; }
-        @keyframes fadePanel { 0% { opacity: 0.2; } 100% { opacity: 1; } }
-        
-        .builder-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-        }
-        @media (max-width: 900px) { .builder-layout { grid-template-columns: 1fr; } }
-        
-        .editor-section {
-            background: #080202;
-            border: 1px solid #1f0a0a;
-            padding: 12px;
-            box-shadow: 0 0 20px rgba(0, 50, 200, 0.03);
-        }
-        .editor-section .section-label {
-            color: #4a2a2a;
-            font-size: 0.65rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            display: block;
-        }
-        .editor-section textarea {
-            width: 100%;
-            height: 380px;
-            background: #0a0303;
-            border: 1px solid #2a1212;
-            color: #b0a0b0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            padding: 12px;
-            resize: vertical;
-            tab-size: 4;
-            transition: 0.3s;
-        }
-        .editor-section textarea:focus {
-            border-color: #2a6aaa;
-            box-shadow: 0 0 30px rgba(0, 80, 255, 0.08);
-            outline: none;
-        }
-        
-        .snippet-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-bottom: 8px;
-            padding: 6px 8px;
-            background: #0a0303;
-            border: 1px solid #1a0808;
-            align-items: center;
-        }
-        .snippet-bar .snippet-label {
-            color: #4a3a3a;
-            font-size: 0.5rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-right: 6px;
-        }
-        .snippet-bar .snippet-btn {
-            background: #0d0505;
-            border: 1px solid #1f0a0a;
-            color: #6a5a5a;
-            padding: 2px 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.55rem;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .snippet-bar .snippet-btn:hover { background: #1a0808; border-color: #4a1515; color: #b0a0a0; }
-        
-        .preview-section {
-            background: #080202;
-            border: 1px solid #1f0a0a;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 20px rgba(0, 50, 200, 0.03);
-        }
-        .preview-frame {
-            flex: 1;
-            min-height: 380px;
-            background: #0a0303;
-            border: 1px solid #1a0808;
-            overflow: hidden;
-            position: relative;
-        }
-        .preview-frame iframe {
-            width: 100%;
-            height: 100%;
-            min-height: 380px;
-            border: none;
-            background: #fff;
-        }
-        .preview-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-            align-items: center;
-        }
-        .preview-controls .btn-preview {
-            background: #1a0808;
-            border: 1px solid #3a1515;
-            color: #b0a0a0;
-            padding: 8px 18px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .preview-controls .btn-preview:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.08); }
-        .preview-controls .btn-fullscreen {
-            background: #0a1a3a;
-            border: 1px solid #2a6aaa;
-            color: #4a8aff;
-            padding: 8px 18px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 0 20px rgba(0, 80, 255, 0.05);
-        }
-        .preview-controls .btn-fullscreen:hover { background: #0a2a5a; border-color: #4a8aff; box-shadow: 0 0 30px rgba(0, 80, 255, 0.15); }
-        .preview-controls .btn-download {
-            background: #1a0808;
-            border: 1px solid #4a1a1a;
-            color: #b02b2b;
-            padding: 8px 22px;
-            font-family: 'Courier New', monospace;
-            font-weight: 700;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-left: auto;
-        }
-        .preview-controls .btn-download:hover {
-            background: #2a0f0f;
-            border-color: #8f2222;
-            box-shadow: 0 0 35px #3a0000, 0 0 40px rgba(0, 80, 255, 0.1);
-            color: #d04a4a;
-        }
-        .preview-controls .btn-share {
-            background: #1a0808;
-            border: 1px solid #1a3a6a;
-            color: #4a8aff;
-            padding: 8px 18px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .preview-controls .btn-share:hover { background: #0a1a3a; border-color: #2a6aaa; color: #6a9aff; box-shadow: 0 0 25px rgba(0, 80, 255, 0.15); }
-        .preview-controls .btn-update {
-            background: #0a1a0a;
-            border: 1px solid #2a6a3a;
-            color: #4a8a5a;
-            padding: 8px 18px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .preview-controls .btn-update:hover { background: #0a2a1a; border-color: #4a8a5a; color: #6aaa7a; box-shadow: 0 0 25px rgba(0, 200, 80, 0.1); }
-        
-        .fullscreen-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0a0505;
-            z-index: 999999;
-            display: none;
-            flex-direction: column;
-            padding: 10px;
-            box-shadow: 0 0 60px rgba(0, 80, 255, 0.1);
-        }
-        .fullscreen-overlay.active { display: flex; }
-        .fullscreen-overlay .fs-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 16px;
-            background: #0a0303;
-            border-bottom: 1px solid #2a0f0f;
-            flex-shrink: 0;
-        }
-        .fullscreen-overlay .fs-header .fs-title {
-            color: #4a8aff;
-            font-size: 0.7rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(0, 80, 255, 0.2);
-        }
-        .fullscreen-overlay .fs-header .fs-title span { color: #4a3a3a; }
-        .fullscreen-overlay .fs-header .fs-close {
-            background: #1a0808;
-            border: 1px solid #4a1515;
-            color: #b0a0a0;
-            padding: 6px 18px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .fullscreen-overlay .fs-header .fs-close:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.1); }
-        .fullscreen-overlay .fs-body {
-            flex: 1;
-            background: #0a0303;
-            border: 1px solid #1a0808;
-            overflow: hidden;
-            position: relative;
-        }
-        .fullscreen-overlay .fs-body iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #fff;
-        }
-        .fullscreen-overlay .fs-footer {
-            display: flex;
-            justify-content: center;
-            padding: 8px 16px;
-            background: #0a0303;
-            border-top: 1px solid #1a0808;
-            flex-shrink: 0;
-            gap: 12px;
-        }
-        .fullscreen-overlay .fs-footer .fs-btn {
-            background: #1a0808;
-            border: 1px solid #3a1515;
-            color: #b0a0a0;
-            padding: 6px 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.6rem;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .fullscreen-overlay .fs-footer .fs-btn:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; }
-        .fullscreen-overlay .fs-footer .fs-btn-blue { border-color: #2a6aaa; color: #4a8aff; }
-        .fullscreen-overlay .fs-footer .fs-btn-blue:hover { background: #0a1a3a; border-color: #4a8aff; box-shadow: 0 0 30px rgba(0, 80, 255, 0.1); }
-        
-        .projects-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 12px;
-            margin: 15px 0;
-        }
-        .project-card {
-            background: #0d0505;
-            border: 1px solid #2a0f0f;
-            padding: 14px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .project-card:hover { border-color: #6a2222; background: #1a0808; box-shadow: 0 0 25px rgba(0, 80, 255, 0.05); }
-        .project-card .name { color: #b0a0a0; font-weight: 600; font-size: 0.9rem; }
-        .project-card .date { font-size: 0.6rem; color: #4a2a2a; margin-top: 4px; }
-        .project-card .app-id { font-size: 0.55rem; color: #4a8aff; margin-top: 2px; text-shadow: 0 0 20px rgba(0,80,255,0.1); }
-        .project-card .version { font-size: 0.55rem; color: #4a8a4a; margin-top: 2px; }
-        .project-card .card-actions {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-            margin-top: 6px;
-        }
-        .project-card .card-actions button {
-            background: transparent;
-            border: 1px solid #2a1212;
-            color: #6a5a5a;
-            padding: 2px 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.55rem;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .project-card .card-actions button:hover { background: #1a0808; border-color: #4a1515; color: #b0a0a0; }
-        .project-card .card-actions .btn-appid { border-color: #1a3a6a; color: #4a8aff; }
-        .project-card .card-actions .btn-appid:hover { background: #0a1a3a; border-color: #2a6aaa; color: #6a9aff; }
-        .project-card .card-actions .btn-delete { border-color: #3a1515; color: #6a2a2a; }
-        .project-card .card-actions .btn-delete:hover { border-color: #8f2222; color: #b02b2b; }
-        
-        .dashboard-title {
-            color: #4a8aff;
-            font-size: 0.75rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            text-shadow: 0 0 30px rgba(0, 80, 255, 0.2);
-            border-bottom: 1px solid #2a0f0f;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-        }
-        .dashboard-title span { color: #4a3a3a; font-size: 0.6rem; letter-spacing: 2px; }
-        
-        .user-list-container {
-            background: #080202;
-            border: 1px solid #1f0a0a;
-            padding: 14px;
-            margin-top: 12px;
-            box-shadow: 0 0 20px rgba(0, 50, 200, 0.02);
-        }
-        .user-list-container .section-title {
-            color: #4a8aff;
-            font-size: 0.7rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-            text-shadow: 0 0 20px rgba(0, 80, 255, 0.1);
-            border-bottom: 1px solid #1a0808;
-            padding-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .user-list-container .section-title span { color: #4a2a2a; font-size: 0.6rem; }
-        
-        .user-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.7rem;
-        }
-        .user-table th {
-            text-align: left;
-            color: #4a3a3a;
-            padding: 8px 6px;
-            border-bottom: 1px solid #1a0808;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.55rem;
-        }
-        .user-table td {
-            padding: 6px;
-            border-bottom: 1px solid #0f0505;
-            color: #a09090;
-        }
-        .user-table .user-online { color: #3a8a3a; }
-        .user-table .user-offline { color: #4a3a3a; }
-        .user-table .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
-        .user-table .status-dot.online { background: #3a8a3a; animation: blink 1.2s infinite; }
-        .user-table .status-dot.offline { background: #4a3a3a; }
-        .user-table .user-email { color: #b0a0a0; }
-        .user-table .user-time { color: #4a6a6a; font-size: 0.6rem; }
-        .user-table .user-action { color: #6a8a6a; font-size: 0.6rem; }
-        
-        .system-log {
-            background: #080202;
-            border: 1px solid #1f0a0a;
-            padding: 14px;
-            font-size: 0.75rem;
-            color: #7a6a6a;
-            max-height: 150px;
-            overflow-y: auto;
-            margin-top: 12px;
-            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
-        }
-        .system-log .line { border-bottom: 1px solid #0f0505; padding: 5px 0; }
-        .system-log .line .time { color: #4a3a3a; margin-right: 14px; }
-        .system-log .line .highlight { color: #b02b2b; }
-        .system-log .line .blue-text { color: #4a8aff; text-shadow: 0 0 20px rgba(0, 100, 255, 0.3); }
-        .system-log .line .user-action { color: #6a8a6a; }
-        
-        .rules-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 6px 18px;
-            margin: 15px 0;
-        }
-        .rule-item {
-            color: #a09090;
-            font-size: 0.75rem;
-            padding: 5px 0 5px 20px;
-            border-bottom: 1px solid #0f0505;
-            position: relative;
-            letter-spacing: 0.5px;
-        }
-        .rule-item::before { content: '⏺'; position: absolute; left: 0; color: #5a1a1a; font-size: 0.6rem; }
-        .rule-section-title {
-            color: #7a3a3a;
-            font-size: 0.85rem;
-            letter-spacing: 3px;
-            border-left: 3px solid #4a1515;
-            padding-left: 12px;
-            margin: 25px 0 15px 0;
-            text-transform: uppercase;
-        }
-        
-        .owner-lock {
-            background: #0a0303;
-            border: 1px solid #3a1515;
-            padding: 20px;
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: 0 0 30px rgba(0, 50, 200, 0.05);
-        }
-        .owner-lock input {
-            background: #0f0505;
-            border: 1px solid #2a1212;
-            padding: 10px 16px;
-            color: #c0b0b0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            width: 280px;
-            max-width: 100%;
-            margin: 10px 0;
-            transition: 0.3s;
-            text-align: center;
-            letter-spacing: 4px;
-        }
-        .owner-lock input:focus {
-            border-color: #2a6aaa;
-            box-shadow: 0 0 30px rgba(0, 80, 255, 0.15);
-            outline: none;
-        }
-        .owner-lock .btn-unlock {
-            background: #1a0808;
-            border: 1px solid #3a1515;
-            color: #b0a0a0;
-            padding: 10px 30px;
-            font-family: 'Courier New', monospace;
-            font-weight: 700;
-            letter-spacing: 3px;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-block;
-            margin: 5px 0;
-        }
-        .owner-lock .btn-unlock:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 30px rgba(0, 80, 255, 0.1); }
-        .owner-lock .lock-status {
-            color: #4a2a2a;
-            font-size: 0.7rem;
-            letter-spacing: 2px;
-            display: block;
-            margin-top: 8px;
-        }
-        .owner-lock .lock-status.unlocked { color: #4a8a4a; }
-        .owner-lock .lock-status.locked { color: #8a3a3a; }
-        
-        .owner-content { display: none; }
-        .owner-content.visible { display: block; }
-        
-        .owner-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 18px;
-            margin: 18px 0;
-        }
-        .control-card {
-            background: #0a0303;
-            border: 1px solid #1f0f0f;
-            padding: 16px;
-            transition: 0.3s;
-            box-shadow: 0 0 20px rgba(0, 50, 200, 0.02);
-        }
-        .control-card:hover { border-color: #2a5a8a; box-shadow: 0 0 30px rgba(0, 80, 255, 0.05); }
-        .control-card .ctrl-label {
-            color: #6a3a3a;
-            font-size: 0.65rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            display: block;
-        }
-        .control-card input, .control-card select, .control-card textarea {
-            width: 100%;
-            background: #0f0505;
-            border: 1px solid #2a1212;
-            padding: 8px 12px;
-            color: #c0b0b0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            margin-bottom: 10px;
-            transition: 0.3s;
-        }
-        .control-card input:focus, .control-card select:focus, .control-card textarea:focus {
-            border-color: #2a6aaa;
-            box-shadow: 0 0 20px rgba(0, 80, 255, 0.08);
-            outline: none;
-        }
-        .control-card textarea { min-height: 50px; resize: vertical; }
-        .btn-owner {
-            background: #1a0808;
-            border: 1px solid #3a1515;
-            color: #b0a0a0;
-            padding: 8px 16px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn-owner:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.06); }
-        .btn-danger { border-color: #5a1515; color: #a03a3a; }
-        .btn-danger:hover { background: #2a0a0a; border-color: #8f2222; color: #d04a4a; }
-        .btn-blue { border-color: #1a3a6a; color: #4a8aff; }
-        .btn-blue:hover { background: #0a1a3a; border-color: #2a6aaa; color: #6a9aff; box-shadow: 0 0 30px rgba(0, 80, 255, 0.15); }
-        .btn-green { border-color: #1a4a2a; color: #4a8a5a; }
-        .btn-green:hover { background: #0a1a1a; border-color: #2a6a3a; color: #6aaa7a; box-shadow: 0 0 30px rgba(0, 200, 80, 0.1); }
-        
-        .owner-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
-            margin: 15px 0;
-        }
-        .owner-stat-card {
-            background: #0a0303;
-            border: 1px solid #1f0f0f;
-            padding: 14px;
-            text-align: center;
-            transition: 0.3s;
-        }
-        .owner-stat-card:hover { border-color: #2a5a8a; }
-        .owner-stat-card .label { font-size: 0.55rem; letter-spacing: 2px; color: #4a3a3a; text-transform: uppercase; }
-        .owner-stat-card .value { font-size: 1.8rem; font-weight: 700; color: #4a8aff; text-shadow: 0 0 30px rgba(0, 80, 255, 0.2); margin: 4px 0; }
-        .owner-stat-card .sub { font-size: 0.55rem; color: #3a2a2a; }
-        
-        .live-users-list {
-            max-height: 150px;
-            overflow-y: auto;
-            background: #0a0303;
-            border: 1px solid #1a0808;
-            padding: 8px 12px;
-            margin-top: 6px;
-        }
-        .live-users-list .user-entry {
-            color: #6a8a6a;
-            font-size: 0.7rem;
-            padding: 3px 0;
-            border-bottom: 1px solid #0f0505;
-            display: flex;
-            justify-content: space-between;
-        }
-        .live-users-list .user-entry .status-dot { color: #3a8a3a; animation: blink 1.2s infinite; }
-        .live-users-list .user-entry .user-email { color: #8a8a8a; }
-        
-        .broadcast-area {
-            margin-top: 20px;
-            border-top: 1px solid #1f0a0a;
-            padding-top: 18px;
-        }
-        .broadcast-area textarea {
-            width: 100%;
-            background: #0a0303;
-            border: 1px solid #2a1212;
-            padding: 12px;
-            color: #b0a0b0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            min-height: 60px;
-            resize: vertical;
-            transition: 0.3s;
-        }
-        .broadcast-area textarea:focus {
-            border-color: #2a6aaa;
-            box-shadow: 0 0 20px rgba(0, 80, 255, 0.08);
-            outline: none;
-        }
-        .btn-broadcast {
-            background: #1a0808;
-            border: 1px solid #3a1515;
-            color: #b0a0a0;
-            padding: 10px 20px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 3px;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn-broadcast:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.06); }
-        
-        .broadcast-history {
-            max-height: 100px;
-            overflow-y: auto;
-            background: #0a0303;
-            border: 1px solid #1a0808;
-            padding: 6px 10px;
-            margin-top: 6px;
-        }
-        .broadcast-history .bc-entry {
-            color: #6a6a6a;
-            font-size: 0.6rem;
-            padding: 2px 0;
-            border-bottom: 1px solid #0a0303;
-        }
-        .broadcast-history .bc-entry .bc-time { color: #3a3a3a; margin-right: 8px; }
-        .broadcast-history .bc-entry .bc-msg { color: #8a8a8a; }
-        
-        .sys-footer {
-            border-top: 1px solid #1a0808;
-            margin-top: 28px;
-            padding-top: 16px;
-            font-size: 0.55rem;
-            color: #3a2a2a;
-            text-align: center;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #0a0303; }
-        ::-webkit-scrollbar-thumb { background: #2a1212; }
-        ::-webkit-scrollbar-thumb:hover { background: #4a1a1a; }
-        
-        .download-status {
-            color: #4a2a2a;
-            font-size: 0.7rem;
-            letter-spacing: 1px;
-            padding: 6px 12px;
-            border: 1px solid #1a0808;
-            background: #0a0303;
-            margin-top: 8px;
-            text-align: center;
-        }
-        .download-status .success { color: #3a8a3a; }
-        .download-status .error { color: #8a2a2a; }
-        .download-status .blue-text { color: #4a8aff; text-shadow: 0 0 20px rgba(0, 80, 255, 0.2); }
-        
-        .save-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-            align-items: center;
-        }
-        .save-section input {
-            flex: 1;
-            background: #0f0505;
-            border: 1px solid #2a1212;
-            padding: 8px 14px;
-            color: #c0b0b0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            min-width: 150px;
-            transition: 0.3s;
-        }
-        .save-section input:focus {
-            border-color: #2a6aaa;
-            box-shadow: 0 0 20px rgba(0, 80, 255, 0.08);
-            outline: none;
-        }
-        .btn-save {
-            background: #1a0808;
-            border: 1px solid #3a1515;
-            color: #b0a0a0;
-            padding: 8px 22px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-save:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.08); }
-        .btn-load {
-            background: #1a0808;
-            border: 1px solid #2a1a1a;
-            color: #6a7a6a;
-            padding: 8px 22px;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-load:hover { background: #1a2a1a; border-color: #3a5a3a; color: #a0c0a0; box-shadow: 0 0 25px rgba(0, 80, 255, 0.05); }
-        .btn-load:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-export {
-            background: #0a1a0a;
-            border: 1px solid #1a3a1a;
-            color: #4a8a4a;
-            padding: 8px 22px;
-            font-family: 'Courier New', monospace;
-monospace;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-export:hover { background: #0a2a0a; border-color: #2a5a2a; color: #6aaa6a; box-shadow: 0 0 25px rgba(0, 200, 80, 0.05); }
-        
-        .blue-glow {
-            box-shadow: 0 0 30px rgba(0, 80, 255, 0.05), inset 0 0 30px rgba(0, 80, 255, 0.02);
-        }
-        .blue-glow:hover {
-            box-shadow: 0 0 40px rgba(0, 80, 255, 0.1), inset 0 0 40px rgba(0, 80, 255, 0.03);
-        }
-        .blue-text {
-            color: #4a8aff;
-            text-shadow: 0 0 30px rgba(0, 80, 255, 0.2);
-        }
-        
-        .maintenance-banner {
-            background: #3a1a0a;
-            border: 1px solid #6a3a1a;
-            color: #b08a4a;
-            padding: 8px 16px;
-            text-align: center;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-size: 0.7rem;
-            display: none;
-        }
-        .maintenance-banner.active { display: block; }
-        
-        .fsga-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999998;
-        }
-        .fsga-modal-content {
-            background: #0a0303;
-            border: 2px solid #4a1515;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 0 60px rgba(100,0,0,0.3);
-        }
-        .fsga-modal-content h2 {
-            color: #b02b2b;
-            letter-spacing: 3px;
-            font-size: 1.2rem;
-        }
-        .fsga-modal-content .app-id-display {
-            background: #0f0505;
-            border: 1px solid #2a1212;
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 0.9rem;
-            color: #4a8aff;
-            word-break: break-all;
-            text-shadow: 0 0 20px rgba(0,80,255,0.2);
-        }
-        .fsga-modal-content p {
-            color: #6a5a5a;
-            font-size: 0.7rem;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-        }
-        .fsga-modal-content .btn-modal {
-            background: #1a0808;
-            border: 1px solid #4a1515;
-            color: #b0a0a0;
-            padding: 10px 30px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 5px;
-        }
-        .fsga-modal-content .btn-modal:hover { background: #2a0f0f; border-color: #6a2222; color: #e0d0d0; }
-        .fsga-modal-content .btn-modal-close {
-            border-color: #2a1212;
-            color: #6a5a5a;
-        }
-        .fsga-modal-content .btn-modal-close:hover { border-color: #4a3a3a; color: #9a8a8a; }
-    </style>
-</head>
-<body>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b14">  <title>⟦ FOUR × SEVEN ⟧ Universal App Builder</title>  <link rel="stylesheet" href="style.css">
+</head><body>  <header class="topbar">
+    <div class="brand">⟦ FOUR × SEVEN ⟧</div>
+    <div class="status-dot">● BUILDER ONLINE</div>
+  </header>  <main class="container"><section class="hero">
 
-    <div class="system-shell">
+  <p class="small-title">
+    UNIVERSAL APP & GAME BUILDER
+  </p>
 
-        <div class="header-terminal">
-            <div class="site-title">FS G.A <span>SiTe</span></div>
-            <div class="sys-status"><i>●</i> BLOOD PROTOCOL // <span id="clockDisplay">00:00:00</span> UTC</div>
-        </div>
+  <h1>
+    Turn Your Website<br>
+    Into an Android APK
+  </h1>
 
-        <div class="maintenance-banner" id="maintenanceBanner">SYSTEM IN MAINTENANCE MODE // SOME FEATURES LIMITED</div>
+  <p class="description">
+    Upload your HTML website, HTML game, or ZIP project.
+    FOUR × SEVEN will build it into a real Android APK.
+  </p>
 
-        <div class="broadcast-banner" id="broadcastBanner">
-            <span class="broadcast-msg" id="broadcastMessage">MESSAGE HERE</span>
-            <span class="broadcast-time" id="broadcastTime"></span>
-            <button class="btn-seen" id="broadcastSeenBtn">SEEN</button>
-        </div>
+</section>
 
-        <div class="verification-banner" id="verificationBanner">
-            VERIFICATION EMAIL SENT. PLEASE CHECK YOUR INBOX AND SPAM FOLDER.
-            <button id="resendVerificationBtn" style="background:transparent;border:1px solid #6a4a1a;color:#b08a4a;padding:4px 12px;margin-left:10px;cursor:pointer;font-family:'Courier New',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:1px;">RESEND EMAIL</button>
-        </div>
 
-        <div class="auth-bar" id="authBar">
-            <input type="text" id="usernameInput" placeholder="USERNAME" value="">
-            <input type="password" id="passwordInput" placeholder="PASSWORD" value="">
-            <button class="btn-auth" id="signInBtn">SIGN IN</button>
-            <button class="btn-auth" id="signUpBtn">SIGN UP</button>
-            <button class="btn-auth" id="signOutBtn" style="display:none;">SIGN OUT</button>
-            <span class="user-status" id="userStatus"> NOT SIGNED IN</span>
-        </div>
+<section class="builder-card">
 
-        <div class="nav-menu">
-            <button class="nav-item active" data-panel="builder">BUILDER</button>
-            <button class="nav-item" data-panel="dashboard">DASHBOARD</button>
-            <button class="nav-item" data-panel="projects">MY PROJECTS</button>
-            <button class="nav-item" data-panel="rules">RULES</button>
-            <button class="nav-item" data-panel="owner">OWNER</button>
-        </div>
+  <h2>🚀 Create Your Android App</h2>
 
-        <!-- PANEL: BUILDER -->
-        <div id="panel-builder" class="panel active">
-            <div class="snippet-bar">
-                <span class="snippet-label">SNIPPETS</span>
-                <button class="snippet-btn" data-snippet="game-loop">GAME LOOP</button>
-                <button class="snippet-btn" data-snippet="api-call">API CALL</button>
-                <button class="snippet-btn" data-snippet="canvas">CANVAS</button>
-                <button class="snippet-btn" data-snippet="form">FORM</button>
-                <button class="snippet-btn" data-snippet="animation">ANIMATION</button>
-                <button class="snippet-btn" data-snippet="localstorage">LOCAL STORAGE</button>
-            </div>
 
-            <div class="builder-layout">
-                <div class="editor-section blue-glow">
-                    <span class="section-label">CODE EDITOR</span>
-                    <textarea id="codeEditor" spellcheck="false"></textarea>
-                    
-                    <div class="save-section">
-                        <input type="text" id="projectNameInput" placeholder="PROJECT NAME">
-                        <button class="btn-save" id="saveProjectBtn">SAVE</button>
-                        <button class="btn-load" id="loadProjectBtn">LOAD</button>
-                        <button class="btn-export" id="exportZipBtn">EXPORT</button>
-                    </div>
-                </div>
+  <!-- PROJECT TYPE -->
 
-                <div class="preview-section blue-glow">
-                    <span class="section-label">LIVE PREVIEW</span>
-                    <div class="preview-frame">
-                        <iframe id="previewFrame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
-                    </div>
-                    <div class="preview-controls">
-                        <button class="btn-preview" id="runBtn">RUN</button>
-                        <button class="btn-preview" id="resetBtn">RESET</button>
-                        <button class="btn-fullscreen" id="fullscreenBtn">FULLSCREEN</button>
-                        <button class="btn-share" id="shareBtn">SHARE</button>
-                        <button class="btn-download" id="downloadBtn">📱 DOWNLOAD APK</button>
-                        <button class="btn-update" id="pushUpdateBtn">🔄 PUSH UPDATE</button>
-                    </div>
-                    <div class="download-status" id="downloadStatus">READY</div>
-                    <div class="download-status" style="margin-top:4px; color:#4a6a4a; font-size:0.6rem;" id="appIdDisplay">APP ID: Not saved yet</div>
-                </div>
-            </div>
-        </div>
+  <div class="form-group">
 
-        <!-- FULLSCREEN OVERLAY -->
-        <div class="fullscreen-overlay" id="fullscreenOverlay">
-            <div class="fs-header">
-                <div class="fs-title">FS G.A <span>SiTe</span> // FULLSCREEN PREVIEW</div>
-                <button class="fs-close" id="fsCloseBtn">EXIT</button>
-            </div>
-            <div class="fs-body">
-                <iframe id="fsIframe" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
-            </div>
-            <div class="fs-footer">
-                <button class="fs-btn fs-btn-blue" id="fsRefreshBtn">REFRESH</button>
-                <button class="fs-btn" id="fsResetBtn">RESET</button>
-            </div>
-        </div>
+    <label>Choose Project Type</label>
 
-        <!-- PANEL: DASHBOARD -->
-        <div id="panel-dashboard" class="panel">
-            <div class="dashboard-title">
-                ⟦ USER ACTIVITY <span>// LIVE SESSIONS</span> ⟧
-            </div>
+    <div class="type-grid">
 
-            <div class="user-list-container blue-glow">
-                <div class="section-title">
-                    <span>⟦ ACTIVE USERS ⟧</span>
-                    <span id="userCountLabel">0 USERS</span>
-                </div>
-                <div style="overflow-x:auto;">
-                    <table class="user-table" id="userTable">
-                        <thead>
-                            <tr>
-                                <th>STATUS</th>
-                                <th>USER</th>
-                                <th>LAST ACTIVE</th>
-                                <th>ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody id="userTableBody">
-                            <tr>
-                                <td colspan="4" style="text-align:center;color:#4a2a2a;padding:15px 0;">
-                                    NO USERS ACTIVE
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+      <button
+        type="button"
+        class="type-btn active"
+        data-type="app"
+      >
+        <span>📱</span>
 
-            <div class="system-log" id="systemLog">
-                <div class="line"><span class="time">[00:00:01]</span> SYSTEM INIT // BLOOD PROTOCOL LOADED</div>
-                <div class="line"><span class="time">[00:00:05]</span> FS G.A SiTe BUILDER ACTIVE</div>
-                <div class="line"><span class="time">[00:00:12]</span> <span class="blue-text">BLUE PROTOCOL ACTIVE // GLOW ENGAGED</span></div>
-            </div>
-        </div>
+        <strong>
+          Android App
+        </strong>
 
-        <!-- PANEL: PROJECTS -->
-        <div id="panel-projects" class="panel">
-            <div style="border-left:3px solid #4a8aff; padding-left:14px; margin-bottom:18px; box-shadow: 0 0 30px rgba(0,80,255,0.05);">
-                <span style="color:#4a8aff; letter-spacing:3px; font-size:0.75rem; text-shadow: 0 0 30px rgba(0,80,255,0.2);">YOUR SAVED PROJECTS</span>
-            </div>
-            <div id="projectsContainer" class="projects-list">
-                <div style="color:#4a2a2a; font-size:0.8rem; padding:20px; text-align:center; width:100%;">
-                    NO PROJECTS SAVED. BUILD AND SAVE ONE.
-                </div>
-            </div>
-        </div>
+        <small>
+          Website → APK
+        </small>
+      </button>
 
-        <!-- PANEL: RULES -->
-        <div id="panel-rules" class="panel">
-            <div class="rule-section-title">SYSTEM PROTOCOLS</div>
-            <div class="rules-grid">
-                <div class="rule-item">RESPECT ALL USERS</div>
-                <div class="rule-item">NO PERSONAL INFO SHARING</div>
-                <div class="rule-item">STOP IF UNCOMFORTABLE</div>
-                <div class="rule-item">REPORT VIA OWNER WHATSAPP</div>
-                <div class="rule-item">MATURE CONTENT</div>
-                <div class="rule-item">VIEWER DISCRETION ADVISED</div>
-                <div class="rule-item">NO HARASSMENT</div>
-                <div class="rule-item">CIVIL CONVERSATIONS</div>
-                <div class="rule-item">NO HATE SPEECH</div>
-                <div class="rule-item">NO ILLEGAL CONTENT</div>
-                <div class="rule-item">OWNER CAN REMOVE ANYTHING</div>
-                <div class="rule-item">NO HACKING</div>
-                <div class="rule-item">PARENTAL PERMISSION UNDER 13</div>
-                <div class="rule-item">USE SECURE CONNECTION</div>
-                <div class="rule-item">NO REDISTRIBUTION</div>
-                <div class="rule-item">DOWNLOADS TRACKED</div>
-                <div class="rule-item">COMMENTS ANONYMOUS</div>
-                <div class="rule-item">IF UNSAFE – CLOSE</div>
-                <div class="rule-item">NO IMPERSONATION</div>
-                <div class="rule-item">ENJOY RESPONSIBLY</div>
-                <div class="rule-item">NO REPORTING</div>
-                <div class="rule-item">NO LOOSE GAMES</div>
-                <div class="rule-item">NO EXTERNAL LINKS</div>
-                <div class="rule-item">NO ADVERTISING</div>
-                <div class="rule-item">BAN ON VIOLATION</div>
-            </div>
-            <div style="margin-top:20px; border-top:1px solid #1a0808; padding-top:16px; color:#4a2a2a; font-size:0.7rem; letter-spacing:1px;">
-                VIOLATION OF ANY PROTOCOL TRIGGERS IMMEDIATE TERMINATION
-            </div>
-        </div>
 
-        <!-- PANEL: OWNER -->
-        <div id="panel-owner" class="panel">
-            <div class="owner-lock" id="ownerLock">
-                <div style="color:#6a3a3a; letter-spacing:3px; font-size:0.7rem; text-transform:uppercase; margin-bottom:8px;">
-                    OWNER TERMINAL // RESTRICTED ACCESS
-                </div>
-                <div style="color:#4a2a2a; font-size:0.6rem; letter-spacing:2px; margin-bottom:12px;">
-                    ENTER OWNER PASSWORD TO ACCESS
-                </div>
-                <input type="password" id="ownerPasswordInput" placeholder="ENTER PASSWORD" value="">
-                <button class="btn-unlock" id="ownerUnlockBtn">UNLOCK</button>
-                <span class="lock-status locked" id="ownerLockStatus">LOCKED</span>
-            </div>
+      <button
+        type="button"
+        class="type-btn"
+        data-type="game"
+      >
+        <span>🎮</span>
 
-            <div class="owner-content" id="ownerContent">
-                <div style="border-left:3px solid #4a8aff; padding-left:14px; margin-bottom:18px; box-shadow: 0 0 30px rgba(0,80,255,0.05);">
-                    <span style="color:#4a8aff; letter-spacing:3px; font-size:0.75rem; text-shadow: 0 0 30px rgba(0,80,255,0.2);">OWNER TERMINAL // UNLOCKED</span>
-                </div>
+        <strong>
+          Android Game
+        </strong>
 
-                <div class="owner-stats">
-                    <div class="owner-stat-card blue-glow">
-                        <div class="label">TOTAL USERS</div>
-                        <div class="value" id="ownerTotalUsers">0</div>
-                        <div class="sub">REGISTERED</div>
-                    </div>
-                    <div class="owner-stat-card blue-glow">
-                        <div class="label">ACTIVE NOW</div>
-                        <div class="value" id="ownerActiveSessions">0</div>
-                        <div class="sub">ONLINE</div>
-                    </div>
-                    <div class="owner-stat-card blue-glow">
-                        <div class="label">TOTAL VISITS</div>
-                        <div class="value" id="ownerTotalVisits">0</div>
-                        <div class="sub">WEBSITE</div>
-                    </div>
-                    <div class="owner-stat-card blue-glow">
-                        <div class="label">APPS BUILT</div>
-                        <div class="value" id="ownerAppBuilds">0</div>
-                        <div class="sub">TOTAL APPS</div>
-                    </div>
-                    <div class="owner-stat-card blue-glow">
-                        <div class="label">TOTAL PROJECTS</div>
-                        <div class="value" id="ownerTotalProjects">0</div>
-                        <div class="sub">SAVED</div>
-                    </div>
-                    <div class="owner-stat-card blue-glow">
-                        <div class="label">TOTAL DOWNLOADS</div>
-                        <div class="value" id="ownerTotalDownloads">0</div>
-                        <div class="sub">APK + HTML</div>
-                    </div>
-                </div>
-
-                <div class="control-card blue-glow" style="margin-bottom:18px; border-color: #2a6aaa;">
-                    <span class="ctrl-label" style="color:#4a8aff;">⟦ BROADCAST TO ALL USERS ⟧</span>
-                    <textarea id="ownerBroadcastText" placeholder="ENTER BROADCAST MESSAGE ..." style="min-height:60px; border-color:#2a4a7a;">WELCOME TO FS G.A SiTe! Build your apps and games here.</textarea>
-                    <button class="btn-owner btn-blue" id="ownerSendBroadcastBtn" style="margin-top:6px;">SEND BROADCAST</button>
-                    <div id="broadcastStatus" style="color:#4a6a8a; font-size:0.6rem; margin-top:6px; letter-spacing:1px;">NO ACTIVE BROADCAST</div>
-                </div>
-
-                <div class="control-card blue-glow" style="margin-bottom:18px;">
-                    <span class="ctrl-label">LIVE USER ACTIVITY</span>
-                    <div class="live-users-list" id="liveUsersList">
-                        <div style="color:#4a2a2a; font-size:0.7rem; padding:4px 0;">NO ACTIVE USERS</div>
-                    </div>
-                </div>
-
-                <div class="owner-controls">
-                    <div class="control-card blue-glow">
-                        <span class="ctrl-label">USER MANAGEMENT</span>
-                        <input type="email" id="ownerUserEmail" placeholder="USER EMAIL" value="">
-                        <select id="ownerUserRole">
-                            <option value="viewer">VIEWER</option>
-                            <option value="moderator">MODERATOR</option>
-                            <option value="admin">ADMIN</option>
-                        </select>
-                        <button class="btn-owner btn-blue" id="ownerUpdateRole">UPDATE ROLE</button>
-                        <button class="btn-owner btn-danger" id="ownerBanUser" style="margin-top:6px;">BAN USER</button>
-                        <button class="btn-owner btn-danger" id="ownerDeleteUser" style="margin-top:4px;">DELETE USER</button>
-                        <input type="text" id="ownerSearchUser" placeholder="SEARCH USER BY EMAIL" style="margin-top:8px;">
-                        <button class="btn-owner btn-blue" id="ownerSearchBtn" style="margin-top:4px;">SEARCH</button>
-                    </div>
-
-                    <div class="control-card blue-glow">
-                        <span class="ctrl-label">CONTENT CONTROL</span>
-                        <input type="text" id="ownerProjectId" placeholder="PROJECT ID" value="">
-                        <select id="ownerContentAction">
-                            <option value="remove">REMOVE</option>
-                            <option value="flag">FLAG</option>
-                            <option value="restore">RESTORE</option>
-                        </select>
-                        <button class="btn-owner btn-blue" id="ownerContentExecute">EXECUTE</button>
-                        <button class="btn-owner btn-danger" id="ownerClearAll" style="margin-top:6px;">CLEAR ALL PROJECTS</button>
-                        <button class="btn-owner btn-blue" id="ownerViewUserProjects" style="margin-top:4px;">VIEW USER PROJECTS</button>
-                    </div>
-
-                    <div class="control-card blue-glow">
-                        <span class="ctrl-label">SYSTEM CONTROL</span>
-                        <select id="ownerSystemMode">
-                            <option value="normal">NORMAL</option>
-                            <option value="maintenance">MAINTENANCE</option>
-                            <option value="readonly">READ-ONLY</option>
-                        </select>
-                        <button class="btn-owner btn-blue" id="ownerSetMode">APPLY MODE</button>
-                        <button class="btn-owner btn-green" id="ownerBackupBtn" style="margin-top:6px;">BACKUP</button>
-                        <button class="btn-owner btn-blue" id="ownerGenerateReport" style="margin-top:4px;">REPORT</button>
-                        <button class="btn-owner btn-danger" id="ownerResetData" style="margin-top:6px;">RESET ALL</button>
-                    </div>
-                </div>
-
-                <div class="broadcast-area">
-                    <div style="color:#4a3a3a; font-size:0.55rem; letter-spacing:2px;">BROADCAST HISTORY</div>
-                    <div class="broadcast-history" id="broadcastHistory">
-                        <div style="color:#4a2a2a; font-size:0.6rem; padding:4px 0;">NO BROADCASTS YET</div>
-                    </div>
-                </div>
-
-                <div style="margin-top:22px; border-top:1px solid #1a0808; padding-top:16px; display:flex; flex-wrap:wrap; justify-content:space-between; font-size:0.65rem; color:#4a2a2a;">
-                    <span>WHATSAPP: +27 60 222 5117</span>
-                    <span>SESSION: ADMIN // <span style="color:#4a8aff; text-shadow: 0 0 20px rgba(0,80,255,0.2);">UNLOCKED</span></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="sys-footer">
-            FS G.A SiTe // BLOOD PROTOCOL // BLUE PROTOCOL ACTIVE // APP & GAME BUILDER v7.0
-        </div>
+        <small>
+          HTML Game → APK
+        </small>
+      </button>
 
     </div>
 
-    <script>
-        // ============================================================
-        // COMPLETE FS G.A SiTe SYSTEM - LOCAL STORAGE MODE
-        // ============================================================
-        console.log('FS G.A SiTe // SYSTEM ONLINE');
-        console.log('No email required - Just username and password');
-        console.log('Build ANY app or game with HTML, CSS, JavaScript');
-        console.log('Download APK directly to your phone');
-        console.log('Push updates through the website');
-        
-        // DOM REFS
-        const usernameInput = document.getElementById('usernameInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const signInBtn = document.getElementById('signInBtn');
-        const signUpBtn = document.getElementById('signUpBtn');
-        const signOutBtn = document.getElementById('signOutBtn');
-        const userStatus = document.getElementById('userStatus');
-        const systemLog = document.getElementById('systemLog');
-        const clockDisplay = document.getElementById('clockDisplay');
-        
-        const codeEditor = document.getElementById('codeEditor');
-        const previewFrame = document.getElementById('previewFrame');
-        const runBtn = document.getElementById('runBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const shareBtn = document.getElementById('shareBtn');
-        const pushUpdateBtn = document.getElementById('pushUpdateBtn');
-        const downloadStatus = document.getElementById('downloadStatus');
-        const appIdDisplay = document.getElementById('appIdDisplay');
-        const projectNameInput = document.getElementById('projectNameInput');
-        const saveProjectBtn = document.getElementById('saveProjectBtn');
-        const loadProjectBtn = document.getElementById('loadProjectBtn');
-        const exportZipBtn = document.getElementById('exportZipBtn');
-        const projectsContainer = document.getElementById('projectsContainer');
-        
-        // STATE
-        let currentUser = null;
-        let currentProjectId = null;
-        let currentAppId = null;
-        let currentVersion = '1.0.0';
-        let ownerUnlocked = false;
-        const OWNER_PASSWORD = 'FS Four Seven';
-        let totalDownloads = 0;
-        
-        // ============================================================
-        // HELPERS
-        // ============================================================
-        function addLog(message, highlight = false, blue = false) {
-            const time = new Date().toUTCString().split(' ')[4];
-            const line = document.createElement('div');
-            line.className = 'line';
-            line.innerHTML = `<span class="time">[${time}]</span> ${blue ? '<span class="blue-text">' + message + '</span>' : highlight ? '<span class="highlight">' + message + '</span>' : message}`;
-            systemLog.prepend(line);
-            if (systemLog.children.length > 15) systemLog.removeChild(systemLog.lastChild);
-        }
-        
-        function updateClock() {
-            const now = new Date();
-            if (clockDisplay) {
-                clockDisplay.textContent = now.toUTCString().split(' ')[4];
-            }
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-        
-        function getCode() {
-            return codeEditor.value;
-        }
-        
-        function getFullHtml() {
-            const code = getCode();
-            return `<!DOCTYPE html>\n<html>\n<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>\n<body style="margin:0;padding:0;background:#000;">\n${code}\n</body>\n</html>`;
-        }
-        
-        function generateAppId() {
-            const prefix = 'FSGA';
-            const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-            const timestamp = Date.now().toString(36).toUpperCase();
-            return prefix + '-' + random + '-' + timestamp;
-        }
-        
-        function showAppIdModal(appId) {
-            const modal = document.createElement('div');
-            modal.className = 'fsga-modal';
-            modal.innerHTML = `
-                <div class="fsga-modal-content">
-                    <h2>APP ID GENERATED</h2>
-                    <div class="app-id-display">${appId}</div>
-                    <p>COPY THIS APP ID INTO YOUR APP<br>Use this ID to check for updates</p>
-                    <button class="btn-modal" onclick="navigator.clipboard.writeText('${appId}').then(()=>alert('APP ID COPIED'))">COPY</button>
-                    <button class="btn-modal btn-modal-close" onclick="this.closest('.fsga-modal').remove()">CLOSE</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-        
-        // ============================================================
-        // LOCAL STORAGE FUNCTIONS
-        // ============================================================
-        function getUsers() {
-            try {
-                const users = localStorage.getItem('fsga_users');
-                return users ? JSON.parse(users) : {};
-            } catch (e) { return {}; }
-        }
-        
-        function saveUsers(users) {
-            localStorage.setItem('fsga_users', JSON.stringify(users));
-        }
-        
-        function getProjects() {
-            try {
-                const projects = localStorage.getItem('fsga_projects');
-                return projects ? JSON.parse(projects) : {};
-            } catch (e) { return {}; }
-        }
-        
-        function saveProjects(projects) {
-            localStorage.setItem('fsga_projects', JSON.stringify(projects));
-        }
-        
-        function getApps() {
-            try {
-                const apps = localStorage.getItem('fsga_apps');
-                return apps ? JSON.parse(apps) : {};
-            } catch (e) { return {}; }
-        }
-        
-        function saveApps(apps) {
-            localStorage.setItem('fsga_apps', JSON.stringify(apps));
-        }
-        
-        function getCurrentUser() {
-            try {
-                const user = localStorage.getItem('fsga_current_user');
-                return user ? JSON.parse(user) : null;
-            } catch (e) { return null; }
-        }
-        
-        function saveCurrentUser(user) {
-            if (user) {
-                localStorage.setItem('fsga_current_user', JSON.stringify(user));
-            } else {
-                localStorage.removeItem('fsga_current_user');
-            }
-        }
-        
-        function getDownloads() {
-            try {
-                return parseInt(localStorage.getItem('fsga_downloads')) || 0;
-            } catch (e) { return 0; }
-        }
-        
-        function saveDownloads(count) {
-            localStorage.setItem('fsga_downloads', count.toString());
-        }
-        
-        // ============================================================
-        // SNIPPETS
-        // ============================================================
-        const snippets = {
-            'game-loop': `<!-- GAME LOOP -->\n<canvas id="game" width="800" height="600"></canvas>\n<script>\nconst canvas = document.getElementById('game');\nif (canvas) {\n  const ctx = canvas.getContext('2d');\n  let x = 200, y = 200;\n  function gameLoop() {\n    ctx.clearRect(0, 0, 800, 600);\n    ctx.fillStyle = '#0f0';\n    ctx.fillRect(x, y, 20, 20);\n    requestAnimationFrame(gameLoop);\n  }\n  gameLoop();\n}\n<\/script>`,
-            'api-call': `<!-- API CALL -->\n<button id="fetchBtn">FETCH DATA</button>\n<div id="result"></div>\n<script>\ndocument.getElementById('fetchBtn').addEventListener('click', async function() {\n  try {\n    const response = await fetch('https://api.github.com/users/octocat');\n    const data = await response.json();\n    document.getElementById('result').innerHTML = '<p>Name: ' + data.name + '</p>';\n  } catch (error) {\n    document.getElementById('result').innerHTML = '<p>Error: ' + error.message + '</p>';\n  }\n});\n<\/script>`,
-            'canvas': `<!-- CANVAS DRAWING -->\n<canvas id="myCanvas" width="800" height="500"></canvas>\n<script>\nconst canvas = document.getElementById('myCanvas');\nif (canvas) {\n  const ctx = canvas.getContext('2d');\n  ctx.fillStyle = '#ff0000';\n  ctx.fillRect(50, 50, 100, 100);\n  ctx.fillStyle = '#00ff00';\n  ctx.beginPath();\n  ctx.arc(300, 150, 50, 0, Math.PI * 2);\n  ctx.fill();\n}\n<\/script>`,
-            'form': `<!-- FORM -->\n<form id="myForm">\n  <input type="text" id="nameInput" placeholder="Your Name">\n  <button type="submit">SUBMIT</button>\n</form>\n<div id="greeting"></div>\n<script>\ndocument.getElementById('myForm').addEventListener('submit', function(e) {\n  e.preventDefault();\n  const name = document.getElementById('nameInput').value;\n  document.getElementById('greeting').innerHTML = '<h2>Hello, ' + name + '!</h2>';\n});\n<\/script>`,
-            'animation': `<!-- ANIMATION -->\n<div id="box" style="width:50px;height:50px;background:#ff0;position:relative;"></div>\n<script>\nlet pos = 0;\nlet dir = 1;\nfunction animate() {\n  pos += 2 * dir;\n  if (pos > 300 || pos < 0) dir *= -1;\n  const box = document.getElementById('box');\n  if (box) box.style.left = pos + 'px';\n  requestAnimationFrame(animate);\n}\nanimate();\n<\/script>`,
-            'localstorage': `<!-- LOCAL STORAGE -->\n<input type="text" id="saveInput" placeholder="Enter something">\n<button id="saveBtn">SAVE</button>\n<button id="loadBtn">LOAD</button>\n<div id="output"></div>\n<script>\ndocument.getElementById('saveBtn').addEventListener('click', function() {\n  const value = document.getElementById('saveInput').value;\n  localStorage.setItem('myData', value);\n  alert('Saved!');\n});\ndocument.getElementById('loadBtn').addEventListener('click', function() {\n  const data = localStorage.getItem('myData');\n  document.getElementById('output').innerHTML = '<p>Saved: ' + data + '</p>';\n});\n<\/script>`
-        };
-        
-        // ============================================================
-        // FULLSCREEN PREVIEW
-        // ============================================================
-        function openFullscreen() {
-            const fullHtml = getFullHtml();
-            const blob = new Blob([fullHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            document.getElementById('fsIframe').src = url;
-            document.getElementById('fullscreenOverlay').classList.add('active');
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
-            addLog('FULLSCREEN PREVIEW OPENED', false, true);
-        }
-        
-        function closeFullscreen() {
-            document.getElementById('fullscreenOverlay').classList.remove('active');
-            document.getElementById('fsIframe').src = 'about:blank';
-            addLog('FULLSCREEN PREVIEW CLOSED');
-        }
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('fullscreenOverlay').classList.contains('active')) {
-                closeFullscreen();
-            }
-        });
-        
-        document.getElementById('fsCloseBtn').addEventListener('click', closeFullscreen);
-        document.getElementById('fsRefreshBtn').addEventListener('click', function() {
-            const fullHtml = getFullHtml();
-            const blob = new Blob([fullHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            document.getElementById('fsIframe').src = url;
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
-            addLog('FULLSCREEN REFRESHED', false, true);
-        });
-        document.getElementById('fsResetBtn').addEventListener('click', function() {
-            document.getElementById('fsIframe').src = 'about:blank';
-            addLog('FULLSCREEN RESET');
-        });
-        
-        // ============================================================
-        // AUTH FUNCTIONS
-        // ============================================================
-        function signUp() {
-            console.log('SIGN UP clicked!');
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value.trim();
-            
-            if (!username || !password) {
-                alert('Please enter username and password');
-                return;
-            }
-            if (username.length < 3) {
-                alert('Username must be at least 3 characters');
-                return;
-            }
-            if (password.length < 4) {
-                alert('Password must be at least 4 characters');
-                return;
-            }
-            
-            const users = getUsers();
-            if (users[username]) {
-                alert('Username already exists! Please choose another.');
-                return;
-            }
-            
-            users[username] = {
-                password: password,
-                created: new Date().toISOString()
-            };
-            saveUsers(users);
-            
-            alert('Account created successfully!\n\nUsername: ' + username + '\nYou can now sign in.');
-            addLog('ACCOUNT CREATED: ' + username, false, true);
-            passwordInput.value = '';
-        }
-        
-        function signIn() {
-            console.log('SIGN IN clicked!');
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value.trim();
-            
-            if (!username || !password) {
-                alert('Please enter username and password');
-                return;
-            }
-            
-            const users = getUsers();
-            if (!users[username]) {
-                alert('Username not found! Please sign up first.');
-                return;
-            }
-            if (users[username].password !== password) {
-                alert('Incorrect password!');
-                return;
-            }
-            
-            currentUser = { username: username };
-            saveCurrentUser(currentUser);
-            
-            userStatus.textContent = ' SIGNED IN AS ' + username;
-            userStatus.className = 'user-status signed-in';
-            signInBtn.style.display = 'none';
-            signUpBtn.style.display = 'none';
-            signOutBtn.style.display = 'inline-block';
-            
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('disabled'));
-            document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen, .btn-update').forEach(el => el.disabled = false);
-            
-            addLog('USER SIGNED IN: ' + username, false, true);
-            loadProjects();
-            alert('Welcome ' + username + '!');
-        }
-        
-        function signOutUser() {
-            console.log('SIGN OUT clicked!');
-            currentUser = null;
-            saveCurrentUser(null);
-            
-            userStatus.textContent = ' NOT SIGNED IN';
-            userStatus.className = 'user-status';
-            signInBtn.style.display = 'inline-block';
-            signUpBtn.style.display = 'inline-block';
-            signOutBtn.style.display = 'none';
-            
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.add('disabled'));
-            document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen, .btn-update').forEach(el => el.disabled = true);
-            
-            projectsContainer.innerHTML = '<div style="color:#4a2a2a; font-size:0.8rem; padding:20px; text-align:center; width:100%;">SIGN IN TO SEE YOUR PROJECTS</div>';
-            addLog('USER SIGNED OUT');
-        }
-        
-        // ============================================================
-        // PROJECTS CRUD
-        // ============================================================
-        function saveProject() {
-            if (!currentUser) { alert('PLEASE SIGN IN FIRST'); return; }
-            
-            const name = projectNameInput.value.trim() || 'Untitled Project';
-            const code = getCode();
-            
-            if (currentProjectId) {
-                const projects = getProjects();
-                const userProjects = projects[currentUser.username] || {};
-                
-                if (userProjects[currentProjectId]) {
-                    userProjects[currentProjectId].code = code;
-                    userProjects[currentProjectId].name = name;
-                    userProjects[currentProjectId].updatedAt = new Date().toISOString();
-                    
-                    const versionParts = userProjects[currentProjectId].version.split('.');
-                    versionParts[2] = parseInt(versionParts[2] || 0) + 1;
-                    userProjects[currentProjectId].version = versionParts.join('.');
-                    currentVersion = userProjects[currentProjectId].version;
-                    
-                    projects[currentUser.username] = userProjects;
-                    saveProjects(projects);
-                    
-                    addLog('PROJECT UPDATED: ' + name + ' v' + currentVersion, false, true);
-                    alert('PROJECT UPDATED\nVersion: ' + currentVersion);
-                    
-                    const apps = getApps();
-                    if (userProjects[currentProjectId].appId) {
-                        const appId = userProjects[currentProjectId].appId;
-                        apps[appId] = {
-                            name: name,
-                            code: code,
-                            version: currentVersion,
-                            updatedAt: new Date().toISOString(),
-                            owner: currentUser.username
-                        };
-                        saveApps(apps);
-                    }
-                    
-                    loadProjects();
-                    updateAppIdDisplay();
-                    return;
-                }
-            }
-            
-            const appId = generateAppId();
-            const projects = getProjects();
-            
-            if (!projects[currentUser.username]) {
-                projects[currentUser.username] = {};
-            }
-            
-            const projectId = Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6);
-            
-            projects[currentUser.username][projectId] = {
-                name: name,
-                code: code,
-                appId: appId,
-                version: '1.0.0',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            
-            saveProjects(projects);
-            currentProjectId = projectId;
-            currentAppId = appId;
-            currentVersion = '1.0.0';
-            
-            const apps = getApps();
-            apps[appId] = {
-                name: name,
-                code: code,
-                version: '1.0.0',
-                updatedAt: new Date().toISOString(),
-                owner: currentUser.username
-            };
-            saveApps(apps);
-            
-            addLog('PROJECT SAVED: ' + name + ' (App ID: ' + appId + ')', false, true);
-            alert('PROJECT SAVED\nApp ID: ' + appId + '\nVersion: 1.0.0');
-            showAppIdModal(appId);
-            loadProjects();
-            updateAppIdDisplay();
-        }
-        
-        function loadProjects() {
-            if (!currentUser) return;
-            
-            const projects = getProjects();
-            const userProjects = projects[currentUser.username] || {};
-            
-            projectsContainer.innerHTML = '';
-            
-            const projectIds = Object.keys(userProjects);
-            
-            if (projectIds.length === 0) {
-                projectsContainer.innerHTML = '<div style="color:#4a2a2a; font-size:0.8rem; padding:20px; text-align:center; width:100%;">NO PROJECTS SAVED</div>';
-                return;
-            }
-            
-            projectIds.forEach(id => {
-                const data = userProjects[id];
-                const card = document.createElement('div');
-                card.className = 'project-card blue-glow';
-                card.innerHTML = `
-                    <div class="name">${data.name || 'Untitled'}</div>
-                    <div class="date">${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'Unknown'}</div>
-                    <div class="version">Version: ${data.version || '1.0.0'}</div>
-                    <div class="app-id">APP ID: ${data.appId || 'No ID'}</div>
-                    <div class="card-actions">
-                        <button class="btn-appid" data-id="${id}">GET ID</button>
-                        <button class="btn-delete" data-id="${id}">DELETE</button>
-                    </div>
-                `;
-                
-                card.addEventListener('click', (e) => {
-                    if (e.target.closest('button')) return;
-                    loadProject(id);
-                });
-                
-                const appIdBtn = card.querySelector('.btn-appid');
-                appIdBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (data.appId) showAppIdModal(data.appId);
-                    else alert('This project has no App ID.');
-                });
-                
-                const delBtn = card.querySelector('.btn-delete');
-                delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (confirm('DELETE THIS PROJECT?')) deleteProject(id);
-                });
-                
-                projectsContainer.appendChild(card);
-            });
-            
-            addLog('LOADED ' + projectIds.length + ' PROJECTS');
-        }
-        
-        function loadProject(projectId) {
-            const projects = getProjects();
-            const userProjects = projects[currentUser.username] || {};
-            const data = userProjects[projectId];
-            
-            if (!data) {
-                alert('PROJECT NOT FOUND');
-                return;
-            }
-            
-            codeEditor.value = data.code || '';
-            currentProjectId = projectId;
-            currentAppId = data.appId || null;
-            currentVersion = data.version || '1.0.0';
-            projectNameInput.value = data.name || 'Untitled';
-            
-            updateAppIdDisplay();
-            addLog('LOADED PROJECT: ' + data.name + ' v' + currentVersion, false, true);
-            runPreview();
-            
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            document.querySelector('[data-panel="builder"]').classList.add('active');
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.getElementById('panel-builder').classList.add('active');
-        }
-        
-        function deleteProject(projectId) {
-            const projects = getProjects();
-            const userProjects = projects[currentUser.username] || {};
-            const data = userProjects[projectId];
-            
-            if (data && data.appId) {
-                const apps = getApps();
-                delete apps[data.appId];
-                saveApps(apps);
-            }
-            
-            delete userProjects[projectId];
-            projects[currentUser.username] = userProjects;
-            saveProjects(projects);
-            
-            addLog('PROJECT DELETED: ' + projectId);
-            loadProjects();
-            
-            if (currentProjectId === projectId) {
-                currentProjectId = null;
-                currentAppId = null;
-                projectNameInput.value = '';
-                updateAppIdDisplay();
-            }
-        }
-        
-        function updateAppIdDisplay() {
-            if (currentAppId) {
-                appIdDisplay.textContent = 'APP ID: ' + currentAppId + ' | Version: ' + currentVersion;
-                appIdDisplay.style.color = '#4a8aff';
-            } else {
-                appIdDisplay.textContent = 'APP ID: Not saved yet';
-                appIdDisplay.style.color = '#4a6a4a';
-            }
-        }
-        
-        // ============================================================
-        // PUSH UPDATE
-        // ============================================================
-        function pushUpdate() {
-            if (!currentUser) { alert('PLEASE SIGN IN FIRST'); return; }
-            if (!currentProjectId) { alert('PLEASE SAVE YOUR PROJECT FIRST'); return; }
-            
-            if (!confirm('Push update for APP ID: ' + currentAppId + '\nVersion: ' + currentVersion + '\n\nThis will make the update available to all users with this App ID.')) {
-                return;
-            }
-            
-            saveProject();
-            
-            alert('UPDATE PUSHED!\nApp ID: ' + currentAppId + '\nVersion: ' + currentVersion + '\n\nUsers can check for updates using this App ID.');
-            addLog('UPDATE PUSHED: ' + currentAppId + ' v' + currentVersion, false, true);
-        }
-        
-        // ============================================================
-        // RUN PREVIEW
-        // ============================================================
-        function runPreview() {
-            const fullHtml = getFullHtml();
-            const blob = new Blob([fullHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            previewFrame.src = url;
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
-            addLog('PREVIEW UPDATED');
-        }
-        
-        function resetPreview() {
-            previewFrame.src = 'about:blank';
-            addLog('PREVIEW RESET');
-        }
-        
-        // ============================================================
-        // DOWNLOAD APK
-        // ============================================================
-        async function downloadApk() {
-            const fullHtml = getFullHtml();
-            const name = projectNameInput.value.trim() || 'MyApp';
-            const cleanName = name.replace(/[^a-zA-Z0-9 ]/g, '').trim();
-            
-            downloadStatus.innerHTML = '📱 BUILDING APK... PLEASE WAIT';
-            downloadStatus.style.color = '#4a8aff';
-            
-            try {
-                const pwaHtml = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#4a8aff">
-    <link rel="manifest" href="data:application/json,${encodeURIComponent(JSON.stringify({
-        name: cleanName,
-        short_name: cleanName.substring(0, 12),
-        start_url: '/',
-        display: 'standalone',
-        background_color: '#0a0a0a',
-        theme_color: '#4a8aff',
-        icons: [{
-            src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%234a8aff"/><text x="50" y="70" text-anchor="middle" font-size="60" fill="white">📱</text></svg>',
-            sizes: '192x192',
-            type: 'image/svg+xml'
-        }]
-    }))}">
-    <title>${cleanName}</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0a0a; min-height: 100vh; }
-    </style>
-</head>
-<body>
-    ${fullHtml}
-</body>
-</html>`;
-                
-                const blob = new Blob([pwaHtml], { type: 'text/html;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                
-                const fileName = `${cleanName}_v${currentVersion}.html`;
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(url), 5000);
-                
-                downloadStatus.innerHTML = '✅ HTML DOWNLOADED! <span style="font-size:0.8rem;color:#4a8aff;">' + fileName + '</span>';
-                downloadStatus.style.color = '#3a8a3a';
-                
-                // Show popup with instructions
-                const popup = document.createElement('div');
-                popup.style.cssText = `
-                    position: fixed;
-                    top: 0; left: 0; width: 100%; height: 100%;
-                    background: rgba(0,0,0,0.95);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 999999;
-                `;
-                popup.innerHTML = `
-                    <div style="
-                        background: #1a0a0a;
-                        border: 2px solid #4a8aff;
-                        padding: 40px;
-                        max-width: 500px;
-                        width: 90%;
-                        border-radius: 8px;
-                        max-height: 90vh;
-                        overflow-y: auto;
-                    ">
-                        <h2 style="color: #4a8aff; text-align: center; letter-spacing: 3px; margin-top: 0;">
-                            📱 APP READY!
-                        </h2>
-                        <div style="background: #0a0303; border: 1px solid #2a1212; padding: 15px; margin: 15px 0; border-radius: 4px;">
-                            <div style="color: #4a3a3a; font-size: 0.8rem;">File Downloaded:</div>
-                            <div style="color: #4a8aff; font-size: 1rem; word-break: break-all;">${fileName}</div>
-                            <div style="color: #4a3a3a; font-size: 0.7rem; margin-top: 5px;">Check your Downloads folder</div>
-                        </div>
-                        <div style="background: #0a0303; border: 1px solid #1a0808; padding: 15px; margin: 10px 0; border-radius: 4px;">
-                            <div style="display: flex; align-items: center; margin: 8px 0; color: #8a7a7a;">
-                                <span style="background: #4a8aff; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">1</span>
-                                <span>Click <span style="color: #4a8aff;">PWA Builder</span> below</span>
-                            </div>
-                            <div style="display: flex; align-items: center; margin: 8px 0; color: #8a7a7a;">
-                                <span style="background: #4a8aff; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">2</span>
-                                <span>Upload the <span style="color: #4a8aff;">HTML file</span> you downloaded</span>
-                            </div>
-                            <div style="display: flex; align-items: center; margin: 8px 0; color: #8a7a7a;">
-                                <span style="background: #4a8aff; color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; flex-shrink: 0;">3</span>
-                                <span>Click <span style="color: #4a8a4a;">"Generate APK"</span></span>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap;">
-                            <a href="https://www.pwabuilder.com/" target="_blank" style="
-                                flex: 1;
-                                background: #0a0303;
-                                border: 2px solid #4a8aff;
-                                color: #4a8aff;
-                                padding: 12px 20px;
-                                text-align: center;
-                                text-decoration: none;
-                                border-radius: 4px;
-                                font-family: 'Courier New', monospace;
-                                font-weight: 600;
-                                letter-spacing: 2px;
-                                font-size: 0.8rem;
-                                transition: 0.3s;
-                                cursor: pointer;
-                            " onmouseover="this.style.background='#0a1a3a'" onmouseout="this.style.background='#0a0303'">
-                                ⚡ PWA BUILDER
-                            </a>
-                            <button onclick="this.closest('div[style*=\\'position: fixed\\']').remove()" style="
-                                flex: 1;
-                                background: #0a0303;
-                                border: 2px solid #3a1515;
-                                color: #6a5a5a;
-                                padding: 12px 20px;
-                                border-radius: 4px;
-                                font-family: 'Courier New', monospace;
-                                font-weight: 600;
-                                letter-spacing: 2px;
-                                font-size: 0.8rem;
-                                cursor: pointer;
-                                transition: 0.3s;
-                            " onmouseover="this.style.borderColor='#6a2222'; this.style.color='#b0a0a0'" onmouseout="this.style.borderColor='#3a1515'; this.style.color='#6a5a5a'">
-                                CLOSE
-                            </button>
-                        </div>
-                        <div style="text-align: center; color: #4a3a3a; font-size: 0.65rem; margin-top: 10px; letter-spacing: 1px;">
-                            💡 The HTML file is in your Downloads folder
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(popup);
-                
-                popup.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        this.remove();
-                    }
-                });
-                
-                addLog('APP PREPARED: ' + name + ' v' + currentVersion, false, true);
-                
-                totalDownloads++;
-                saveDownloads(totalDownloads);
-                document.getElementById('ownerTotalDownloads').textContent = totalDownloads;
-                
-            } catch (error) {
-                console.error('Error:', error);
-                downloadStatus.innerHTML = 'Error preparing app. Please try again.';
-                downloadStatus.style.color = '#b02b2b';
-            }
-        }
-        
-        // ============================================================
-        // EXPORT
-        // ============================================================
-        function exportAsHtml() {
-            const fullHtml = getFullHtml();
-            const name = projectNameInput.value.trim() || 'project';
-            const blob = new Blob([fullHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = name + '.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 5000);
-            addLog('EXPORTED: ' + name + '.html', false, true);
-            downloadStatus.innerHTML = 'EXPORTED: ' + name + '.html';
-            downloadStatus.style.color = '#4a8aff';
-            setTimeout(() => {
-                downloadStatus.innerHTML = 'READY';
-                downloadStatus.style.color = '#4a2a2a';
-            }, 4000);
-        }
-        
-        // ============================================================
-        // SHARE PROJECT
-        // ============================================================
-        function shareProject() {
-            if (!currentUser) { alert('PLEASE SIGN IN TO SHARE'); return; }
-            if (!currentAppId) { alert('PLEASE SAVE YOUR PROJECT FIRST'); return; }
-            
-            const shareLink = window.location.origin + '?app=' + currentAppId;
-            
-            navigator.clipboard.writeText('FS G.A App\nApp ID: ' + currentAppId + '\nLink: ' + shareLink + '\nVersion: ' + currentVersion).then(() => {
-                alert('SHARE LINK COPIED!\n\nApp ID: ' + currentAppId + '\nLink: ' + shareLink);
-                addLog('PROJECT SHARED: ' + currentAppId, false, true);
-            }).catch(() => {
-                alert('SHARE THIS APP ID: ' + currentAppId + '\n\nGive this ID to anyone who wants your app.');
-                addLog('PROJECT SHARED: ' + currentAppId, false, true);
-            });
-        }
-        
-        // ============================================================
-        // OWNER PANEL
-        // ============================================================
-        function unlockOwner() {
-            const password = document.getElementById('ownerPasswordInput').value.trim();
-            if (password === OWNER_PASSWORD) {
-                ownerUnlocked = true;
-                document.getElementById('ownerLock').style.display = 'none';
-                document.getElementById('ownerContent').classList.add('visible');
-                document.getElementById('ownerLockStatus').textContent = 'UNLOCKED';
-                document.getElementById('ownerLockStatus').className = 'lock-status unlocked';
-                addLog('OWNER PANEL UNLOCKED', false, true);
-                updateOwnerStats();
-                loadBroadcastHistory();
-            } else {
-                alert('INCORRECT PASSWORD');
-                addLog('OWNER PANEL: INCORRECT PASSWORD ATTEMPT', true);
-                document.getElementById('ownerLockStatus').textContent = 'INCORRECT PASSWORD';
-                document.getElementById('ownerLockStatus').className = 'lock-status locked';
-                setTimeout(() => {
-                    document.getElementById('ownerLockStatus').textContent = 'LOCKED';
-                }, 3000);
-            }
-        }
-        
-        function updateOwnerStats() {
-            const users = getUsers();
-            const projects = getProjects();
-            let totalProjects = 0;
-            Object.keys(projects).forEach(user => {
-                totalProjects += Object.keys(projects[user]).length;
-            });
-            
-            document.getElementById('ownerTotalUsers').textContent = Object.keys(users).length;
-            document.getElementById('ownerTotalProjects').textContent = totalProjects;
-            document.getElementById('ownerActiveSessions').textContent = currentUser ? '1' : '0';
-            document.getElementById('ownerTotalDownloads').textContent = getDownloads();
-        }
-        
-        document.getElementById('ownerPasswordInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') unlockOwner();
-        });
-        document.getElementById('ownerUnlockBtn').addEventListener('click', unlockOwner);
-        
-        // ============================================================
-        // BROADCAST
-        // ============================================================
-        function loadBroadcastHistory() {
-            const history = document.getElementById('broadcastHistory');
-            const broadcasts = JSON.parse(localStorage.getItem('fsga_broadcasts') || '[]');
-            
-            history.innerHTML = '';
-            if (broadcasts.length === 0) {
-                history.innerHTML = '<div style="color:#4a2a2a; font-size:0.6rem; padding:4px 0;">NO BROADCASTS YET</div>';
-                return;
-            }
-            
-            broadcasts.slice(0, 10).forEach((entry) => {
-                const div = document.createElement('div');
-                div.className = 'bc-entry';
-                div.innerHTML = `<span class="bc-time">[${entry.time}]</span><span class="bc-msg">${entry.message}</span>`;
-                history.appendChild(div);
-            });
-        }
-        
-        function sendBroadcast() {
-            const message = document.getElementById('ownerBroadcastText').value.trim();
-            if (!message) {
-                alert('ENTER A MESSAGE');
-                return;
-            }
-            
-            const broadcasts = JSON.parse(localStorage.getItem('fsga_broadcasts') || '[]');
-            broadcasts.unshift({
-                message: message,
-                time: new Date().toLocaleString(),
-                sender: 'Owner'
-            });
-            localStorage.setItem('fsga_broadcasts', JSON.stringify(broadcasts));
-            
-            addLog('BROADCAST SENT: ' + message, false, true);
-            alert('BROADCAST SENT TO ALL USERS!');
-            loadBroadcastHistory();
-            document.getElementById('ownerBroadcastText').value = '';
-            document.getElementById('broadcastStatus').textContent = 'BROADCAST SENT';
-            setTimeout(() => {
-                document.getElementById('broadcastStatus').textContent = 'NO ACTIVE BROADCAST';
-            }, 5000);
-        }
-        
-        document.getElementById('ownerSendBroadcastBtn').addEventListener('click', sendBroadcast);
-        
-        // ============================================================
-        // EVENT LISTENERS
-        // ============================================================
-        signUpBtn.addEventListener('click', signUp);
-        signInBtn.addEventListener('click', signIn);
-        signOutBtn.addEventListener('click', signOutUser);
-        
-        passwordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') signIn();
-        });
-        usernameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') passwordInput.focus();
-        });
-        
-        runBtn.addEventListener('click', runPreview);
-        resetBtn.addEventListener('click', resetPreview);
-        downloadBtn.addEventListener('click', downloadApk);
-        shareBtn.addEventListener('click', shareProject);
-        pushUpdateBtn.addEventListener('click', pushUpdate);
-        exportZipBtn.addEventListener('click', exportAsHtml);
-        fullscreenBtn.addEventListener('click', openFullscreen);
-        
-        saveProjectBtn.addEventListener('click', saveProject);
-        loadProjectBtn.addEventListener('click', () => {
-            if (!currentUser) { alert('PLEASE SIGN IN FIRST'); return; }
-            loadProjects();
-            document.querySelector('[data-panel="projects"]').click();
-        });
-        
-        codeEditor.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); runPreview(); }
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = codeEditor.selectionStart;
-                const end = codeEditor.selectionEnd;
-                codeEditor.value = codeEditor.value.substring(0, start) + '  ' + codeEditor.value.substring(end);
-                codeEditor.selectionStart = codeEditor.selectionEnd = start + 2;
-            }
-        });
-        
-        let autoSaveTimer = null;
-        codeEditor.addEventListener('input', () => {
-            clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                if (currentUser && projectNameInput.value.trim()) {
-                    localStorage.setItem('fsga_draft_code', codeEditor.value);
-                    localStorage.setItem('fsga_draft_name', projectNameInput.value.trim());
-                }
-            }, 30000);
-        });
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            const draftCode = localStorage.getItem('fsga_draft_code');
-            const draftName = localStorage.getItem('fsga_draft_name');
-            if (draftCode) {
-                if (confirm('LOAD YOUR DRAFT FROM LOCAL STORAGE?')) {
-                    codeEditor.value = draftCode;
-                    if (draftName) projectNameInput.value = draftName;
-                    addLog('DRAFT LOADED FROM LOCAL STORAGE', false, true);
-                }
-            }
-        });
-        
-        document.querySelectorAll('.snippet-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const snippetKey = this.dataset.snippet;
-                if (snippets[snippetKey]) {
-                    codeEditor.value = snippets[snippetKey];
-                    addLog('SNIPPET LOADED: ' + snippetKey, false, true);
-                    runPreview();
-                }
-            });
-        });
-        
-        document.querySelectorAll('.nav-item').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById('panel-' + this.dataset.panel).classList.add('active');
-                if (this.dataset.panel === 'projects' && currentUser) loadProjects();
-                if (this.dataset.panel === 'owner') {
-                    if (ownerUnlocked) {
-                        document.getElementById('ownerLock').style.display = 'none';
-                        document.getElementById('ownerContent').classList.add('visible');
-                        loadBroadcastHistory();
-                    } else {
-                        document.getElementById('ownerLock').style.display = 'block';
-                        document.getElementById('ownerContent').classList.remove('visible');
-                    }
-                }
-                if (this.dataset.panel === 'dashboard') {
-                    updateOwnerStats();
-                    if (currentUser) {
-                        const tableBody = document.getElementById('userTableBody');
-                        tableBody.innerHTML = `
-                            <tr>
-                                <td><span class="status-dot online"></span><span class="user-online">ONLINE</span></td>
-                                <td class="user-email">${currentUser.username}</td>
-                                <td class="user-time">Just now</td>
-                                <td style="color:#4a6a6a;font-size:0.6rem;">ACTIVE</td>
-                            </tr>
-                        `;
-                        document.getElementById('userCountLabel').textContent = '1 USER';
-                    }
-                }
-            });
-        });
-        
-        // ============================================================
-        // INIT
-        // ============================================================
-        codeEditor.value = `<!-- Welcome to FS G.A SiTe -->
-<!-- Write your HTML, CSS, and JavaScript here -->
-<h1 style="color:#4a8aff;font-family:monospace;text-align:center;margin-top:40px;">
-  FS G.A SiTe
-</h1>
-<p style="color:#b0a0a0;font-family:monospace;text-align:center;">
-  Build any app or game you want
-</p>
-<div style="text-align:center;margin-top:20px;">
-  <button onclick="alert('Your app works!')" 
-          style="background:#1a0808;border:2px solid #4a8aff;color:#4a8aff;
-                 padding:12px 30px;font-family:monospace;font-size:16px;cursor:pointer;">
-    CLICK ME
-  </button>
-</div>`;
-        
-        addLog('FS G.A SiTe SYSTEM ONLINE', false, true);
-        addLog('LOCAL MODE ACTIVE // No email required', false, true);
-        addLog('Build ANY app or game with HTML, CSS, JavaScript', false, true);
-        addLog('Push updates through the website', false, true);
-        console.log('All systems ready!');
-        console.log('OWNER PASSWORD: FS Four Seven');
-        
-        const savedUser = getCurrentUser();
-        if (savedUser) {
-            currentUser = savedUser;
-            userStatus.textContent = ' SIGNED IN AS ' + currentUser.username;
-            userStatus.className = 'user-status signed-in';
-            signInBtn.style.display = 'none';
-            signUpBtn.style.display = 'none';
-            signOutBtn.style.display = 'inline-block';
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('disabled'));
-            document.querySelectorAll('.btn-save, .btn-load, .btn-export, .btn-download, .btn-share, .btn-fullscreen, .btn-update').forEach(el => el.disabled = false);
-            loadProjects();
-            addLog('AUTO SIGNED IN: ' + currentUser.username, false, true);
-        }
-        
-        loadBroadcastHistory();
-        updateOwnerStats();
-        updateAppIdDisplay();
-        
-        console.log('FS G.A SiTe // READY TO BUILD!');
-    </script>
+  </div>
 
-</body>
+
+  <!-- PROJECT FILE -->
+
+  <div class="form-group">
+
+    <label for="projectFile">
+      Upload HTML or ZIP Project
+    </label>
+
+
+    <div class="upload-box">
+
+      <input
+        type="file"
+        id="projectFile"
+        accept=".html,.htm,.zip"
+      >
+
+
+      <div class="upload-icon">
+        📦
+      </div>
+
+
+      <strong>
+        Choose your project
+      </strong>
+
+
+      <p>
+        HTML, HTM or ZIP files
+      </p>
+
+
+      <span id="fileName">
+        No file selected
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- APP NAME -->
+
+  <div class="form-group">
+
+    <label for="appName">
+      App Name
+    </label>
+
+
+    <input
+      type="text"
+      id="appName"
+      placeholder="My Awesome App"
+      maxlength="40"
+      autocomplete="off"
+    >
+
+  </div>
+
+
+  <!-- PACKAGE NAME -->
+
+  <div class="form-group">
+
+    <label for="packageName">
+      Android Package Name
+    </label>
+
+
+    <input
+      type="text"
+      id="packageName"
+      placeholder="com.fourseven.myapp"
+      maxlength="80"
+      autocomplete="off"
+    >
+
+
+    <small class="help">
+      Example: com.fourseven.myapp
+    </small>
+
+  </div>
+
+
+  <!-- BUILD BUTTON -->
+
+  <button
+    id="buildBtn"
+    class="build-btn"
+    type="button"
+  >
+
+    <span>⚡</span>
+
+    START APK BUILD
+
+  </button>
+
+
+  <!-- BUILD STATUS -->
+
+  <section
+    id="buildPanel"
+    class="build-panel hidden"
+  >
+
+    <div class="build-header">
+
+      <strong id="buildTitle">
+        Preparing build...
+      </strong>
+
+      <span id="buildPercent">
+        0%
+      </span>
+
+    </div>
+
+
+    <div class="progress">
+
+      <div id="progressBar"></div>
+
+    </div>
+
+
+    <p id="buildMessage">
+      Preparing your project...
+    </p>
+
+
+    <div
+      id="buildLog"
+      class="build-log"
+    ></div>
+
+  </section>
+
+
+  <!-- DOWNLOAD -->
+
+  <a
+    id="downloadBtn"
+    class="download-btn hidden"
+    href="#"
+  >
+    ⬇️ DOWNLOAD APK
+  </a>
+
+
+  <!-- ERROR -->
+
+  <div
+    id="errorBox"
+    class="error-box hidden"
+  ></div>
+
+</section>
+
+
+<!-- HOW IT WORKS -->
+
+<section class="steps">
+
+  <h2>
+    How FOUR × SEVEN Works
+  </h2>
+
+
+  <div class="steps-grid">
+
+
+    <div class="step">
+
+      <span>
+        01
+      </span>
+
+      <h3>
+        UPLOAD
+      </h3>
+
+      <p>
+        Upload your HTML website,
+        HTML game or ZIP project.
+      </p>
+
+    </div>
+
+
+    <div class="step">
+
+      <span>
+        02
+      </span>
+
+      <h3>
+        BUILD
+      </h3>
+
+      <p>
+        Our Android build system
+        creates your application.
+      </p>
+
+    </div>
+
+
+    <div class="step">
+
+      <span>
+        03
+      </span>
+
+      <h3>
+        DOWNLOAD
+      </h3>
+
+      <p>
+        Download your finished
+        Android APK.
+      </p>
+
+    </div>
+
+
+  </div>
+
+</section>
+
+
+<!-- FEATURES -->
+
+<section class="features">
+
+  <h2>
+    🔥 Builder Features
+  </h2>
+
+
+  <div class="feature-grid">
+
+    <div class="feature">
+      <strong>📱 HTML → APK</strong>
+      <span>Convert websites into Android apps.</span>
+    </div>
+
+
+    <div class="feature">
+      <strong>🎮 HTML Games</strong>
+      <span>Package browser games as Android apps.</span>
+    </div>
+
+
+    <div class="feature">
+      <strong>📦 ZIP Projects</strong>
+      <span>Upload complete website projects.</span>
+    </div>
+
+
+    <div class="feature">
+      <strong>⚡ Automatic Build</strong>
+      <span>Android builds happen automatically.</span>
+    </div>
+
+  </div>
+
+</section>
+
+  </main>  <footer><strong>
+  ⟦ FOUR × SEVEN ⟧
+</strong>
+
+<br>
+
+Universal App & Game Builder
+
+  </footer>  <script src="script.js"></script></body>
 </html>
