@@ -5,23 +5,15 @@ on:
     types:
       - four-seven-build
 
-permissions:
-  contents: read
-
 jobs:
-  build-apk:
-
+  build:
     runs-on: ubuntu-latest
 
     env:
-      JOB_ID: ${{ github.event.client_payload.jobId }}
-      APP_NAME: ${{ github.event.client_payload.appName }}
-      PACKAGE_NAME: ${{ github.event.client_payload.packageName }}
-      API_BASE_URL: ${{ github.event.client_payload.apiBaseUrl }}
+      API_BASE_URL: https://four-seven-vs-tu-be-11.vercel.app
       BUILDER_API_SECRET: ${{ secrets.BUILDER_API_SECRET }}
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -34,265 +26,148 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '21'
 
-      - name: Show build information
+      - name: Install system tools
         run: |
-          echo "======================================"
-          echo "⟦ FOUR × SEVEN ⟧ APK BUILDER"
-          echo "======================================"
-          echo "App: $APP_NAME"
-          echo "Package: $PACKAGE_NAME"
-          echo "Job: $JOB_ID"
-          echo "======================================"
+          sudo apt-get update
+          sudo apt-get install -y unzip curl
 
-      - name: Tell API build started
+      - name: Prepare workspace
         run: |
-          curl --fail-with-body -sS \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -H "x-builder-secret: $BUILDER_API_SECRET" \
-            "$API_BASE_URL/api/internal/progress/$JOB_ID" \
-            -d '{
-              "progress": 20,
-              "statusText": "Preparing",
-              "message": "Preparing your Android project..."
-            }'
+          rm -rf build-work
+          mkdir -p build-work/project
+          mkdir -p build-work/www
 
-      - name: Download project
+      - name: Download uploaded project
         run: |
-          set -e
+          curl -fL \
+            -H "x-builder-secret: ${BUILDER_API_SECRET}" \
+            "${API_BASE_URL}/api/internal/project/${{ github.event.client_payload.jobId }}" \
+            -o build-work/project/uploaded
 
-          mkdir -p input
-          cd input
-
-          curl --fail-with-body -sS \
-            -L \
-            -OJ \
-            -H "x-builder-secret: $BUILDER_API_SECRET" \
-            "$API_BASE_URL/api/internal/project/$JOB_ID"
-
-          echo "Downloaded project:"
-          ls -lah
-
-      - name: Tell API project downloaded
-        run: |
-          curl --fail-with-body -sS \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -H "x-builder-secret: $BUILDER_API_SECRET" \
-            "$API_BASE_URL/api/internal/progress/$JOB_ID" \
-            -d '{
-              "progress": 30,
-              "statusText": "Project Ready",
-              "message": "Project downloaded. Preparing web files..."
-            }'
-
-      - name: Prepare web project
+      - name: Detect and prepare project
         shell: bash
         run: |
           set -e
 
-          mkdir -p web
+          FILE="build-work/project/uploaded"
+          WWW="build-work/www"
 
-          PROJECT_FILE="$(find input -maxdepth 1 -type f | head -n 1)"
+          if file "$FILE" | grep -qi "zip"; then
+            echo "ZIP project detected."
+            mkdir -p build-work/unpacked
+            unzip -q "$FILE" -d build-work/unpacked
 
-          if [ -z "$PROJECT_FILE" ]; then
-            echo "No project file was downloaded."
-            exit 1
+            INDEX_FILE=$(find build-work/unpacked -type f \( -iname "index.html" -o -iname "index.htm" \) | head -n 1)
+
+            if [ -z "$INDEX_FILE" ]; then
+              echo "No index.html found in ZIP."
+              exit 1
+            fi
+
+            PROJECT_DIR=$(dirname "$INDEX_FILE")
+
+            cp -R "$PROJECT_DIR"/. "$WWW"/
+          else
+            echo "HTML project detected."
+
+            if ! grep -qi "<html" "$FILE"; then
+              echo "Uploaded file does not appear to be an HTML document."
+            fi
+
+            cp "$FILE" "$WWW/index.html"
           fi
 
-          echo "Project file: $PROJECT_FILE"
-
-          case "$PROJECT_FILE" in
-
-            *.zip|*.ZIP)
-
-              echo "ZIP project detected."
-
-              mkdir -p extracted
-
-              if unzip -Z1 "$PROJECT_FILE" \
-                | grep -E '(^/|(^|/)\.\.(/|$))' \
-                >/dev/null; then
-
-                echo "Unsafe ZIP paths detected."
-                exit 1
-              fi
-
-              unzip -q \
-                "$PROJECT_FILE" \
-                -d extracted
-
-              INDEX_FILE="$(
-                find extracted \
-                -type f \
-                -iname 'index.html' \
-                | head -n 1
-              )"
-
-              if [ -z "$INDEX_FILE" ]; then
-                echo "ZIP project does not contain index.html."
-                exit 1
-              fi
-
-              ROOT_DIR="$(dirname "$INDEX_FILE")"
-
-              cp -a "$ROOT_DIR"/. web/
-
-              ;;
-
-            *.html|*.HTML|*.htm|*.HTM)
-
-              echo "HTML project detected."
-
-              cp \
-                "$PROJECT_FILE" \
-                web/index.html
-
-              ;;
-
-            *)
-
-              echo "Unsupported project type."
-              exit 1
-
-              ;;
-
-          esac
-
-          if [ ! -f web/index.html ]; then
+          if [ ! -f "$WWW/index.html" ]; then
             echo "index.html was not found."
             exit 1
           fi
 
           echo "Web project ready:"
-          find web \
-            -maxdepth 2 \
-            -type f \
-            | head -100
+          find "$WWW" -maxdepth 2 -type f | sort
 
-      - name: Tell API web project prepared
+      - name: Create Capacitor project
+        working-directory: build-work
         run: |
-          curl --fail-with-body -sS \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -H "x-builder-secret: $BUILDER_API_SECRET" \
-            "$API_BASE_URL/api/internal/progress/$JOB_ID" \
-            -d '{
-              "progress": 40,
-              "statusText": "Building Android Project",
-              "message": "Creating the Android application..."
-            }'
+          cat > package.json <<'EOF'
+          {
+            "name": "four-seven-generated-app",
+            "private": true,
+            "version": "1.0.0",
+            "scripts": {
+              "build": "echo web-build-complete"
+            },
+            "dependencies": {
+              "@capacitor/android": "^7.4.3",
+              "@capacitor/core": "^7.4.3"
+            },
+            "devDependencies": {
+              "@capacitor/cli": "^7.4.3"
+            }
+          }
+          EOF
 
-      - name: Create Capacitor Android project
-        run: |
-          set -e
+          npm install
 
-          mkdir -p builder
-
-          cd builder
-
-          npm init -y
-
-          npm install \
-            @capacitor/core@7 \
-            @capacitor/cli@7 \
-            @capacitor/android@7
-
-          npx cap init \
-            "$APP_NAME" \
-            "$PACKAGE_NAME" \
-            --web-dir=../web
+          cat > capacitor.config.json <<EOF
+          {
+            "appId": "${{ github.event.client_payload.packageName }}",
+            "appName": "${{ github.event.client_payload.appName }}",
+            "webDir": "www"
+          }
+          EOF
 
           npx cap add android
 
-          npx cap sync android
-
-      - name: Tell API Android project created
+      - name: Copy web files
+        working-directory: build-work
         run: |
-          curl --fail-with-body -sS \
-            -X POST \
+          npx cap copy android
+
+      - name: Update build progress
+        run: |
+          curl -sS -X POST \
             -H "Content-Type: application/json" \
-            -H "x-builder-secret: $BUILDER_API_SECRET" \
-            "$API_BASE_URL/api/internal/progress/$JOB_ID" \
+            -H "x-builder-secret: ${BUILDER_API_SECRET}" \
+            "${API_BASE_URL}/api/internal/progress/${{ github.event.client_payload.jobId }}" \
             -d '{
-              "progress": 60,
-              "statusText": "Compiling APK",
-              "message": "Compiling the Android application..."
-            }'
+              "progress": 55,
+              "statusText": "Building Android APK",
+              "message": "Compiling Android project..."
+            }' || true
 
       - name: Build release APK
-        working-directory: builder/android
+        working-directory: build-work/android
         run: |
           chmod +x gradlew
-
-          ./gradlew \
-            assembleRelease \
-            --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
       - name: Find APK
+        id: apk
+        working-directory: build-work
         run: |
-          set -e
+          APK=$(find android/app/build/outputs/apk/release -type f -name "*.apk" | head -n 1)
 
-          APK_PATH="$(
-            find \
-              builder/android/app/build/outputs/apk/release \
-              -type f \
-              -name '*.apk' \
-              | head -n 1
-          )"
-
-          if [ -z "$APK_PATH" ]; then
-            echo "APK was not created."
+          if [ -z "$APK" ]; then
+            echo "APK was not generated."
             exit 1
           fi
 
-          echo "APK_PATH=$APK_PATH" >> "$GITHUB_ENV"
+          echo "APK=$APK" >> "$GITHUB_OUTPUT"
+          echo "Generated APK: $APK"
 
-          echo "APK created:"
-          ls -lh "$APK_PATH"
-
-      - name: Tell API APK is ready
+      - name: Upload APK to Builder API
         run: |
-          curl --fail-with-body -sS \
+          curl -fL \
             -X POST \
-            -H "Content-Type: application/json" \
-            -H "x-builder-secret: $BUILDER_API_SECRET" \
-            "$API_BASE_URL/api/internal/progress/$JOB_ID" \
-            -d '{
-              "progress": 90,
-              "statusText": "Uploading APK",
-              "message": "Uploading your finished APK..."
-            }'
+            -H "x-builder-secret: ${BUILDER_API_SECRET}" \
+            -F "apk=@${{ steps.apk.outputs.APK }}" \
+            "${API_BASE_URL}/api/internal/complete/${{ github.event.client_payload.jobId }}"
 
-      - name: Upload APK to FOUR × SEVEN
+      - name: Build completed
         run: |
-          curl --fail-with-body -sS \
-            -X POST \
-            -H "x-builder-secret: $BUILDER_API_SECRET" \
-            -F "apk=@$APK_PATH;type=application/vnd.android.package-archive" \
-            "$API_BASE_URL/api/internal/complete/$JOB_ID"
-
-      - name: Build complete
-        run: |
-          echo "======================================"
-          echo "🎉 APK BUILD COMPLETE"
-          echo "======================================"
-          echo "App: $APP_NAME"
-          echo "Package: $PACKAGE_NAME"
-          echo "Job: $JOB_ID"
-          echo "======================================"
-
-      - name: Report build failure
-        if: failure()
-        run: |
-          curl --fail-with-body -sS \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -H "x-builder-secret: $BUILDER_API_SECRET" \
-            "$API_BASE_URL/api/internal/fail/$JOB_ID" \
-            -d '{
-              "message": "GitHub Actions Android build failed."
-            }' \
-            || true
+          echo "=========================================="
+          echo "     FOUR × SEVEN APK BUILD COMPLETE"
+          echo "=========================================="
+          echo "Job ID: ${{ github.event.client_payload.jobId }}"
