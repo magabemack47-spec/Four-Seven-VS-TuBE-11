@@ -31,7 +31,7 @@ jobs:
       - name: Install system tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y unzip curl
+          sudo apt-get install -y unzip curl file
 
       - name: Prepare workspace
         run: |
@@ -56,13 +56,16 @@ jobs:
 
           if file "$FILE" | grep -qi "zip"; then
             echo "ZIP project detected."
+
             mkdir -p build-work/unpacked
             unzip -q "$FILE" -d build-work/unpacked
 
-            INDEX_FILE=$(find build-work/unpacked -type f \( -iname "index.html" -o -iname "index.htm" \) | head -n 1)
+            INDEX_FILE=$(find build-work/unpacked -type f \
+              \( -iname "index.html" -o -iname "index.htm" \) \
+              | head -n 1)
 
             if [ -z "$INDEX_FILE" ]; then
-              echo "No index.html found in ZIP."
+              echo "ERROR: No index.html found in ZIP."
               exit 1
             fi
 
@@ -72,19 +75,15 @@ jobs:
           else
             echo "HTML project detected."
 
-            if ! grep -qi "<html" "$FILE"; then
-              echo "Uploaded file does not appear to be an HTML document."
-            fi
-
             cp "$FILE" "$WWW/index.html"
           fi
 
           if [ ! -f "$WWW/index.html" ]; then
-            echo "index.html was not found."
+            echo "ERROR: index.html was not found."
             exit 1
           fi
 
-          echo "Web project ready:"
+          echo "Web project ready."
           find "$WWW" -maxdepth 2 -type f | sort
 
       - name: Create Capacitor project
@@ -146,11 +145,16 @@ jobs:
       - name: Find APK
         id: apk
         working-directory: build-work
+        shell: bash
         run: |
-          APK=$(find android/app/build/outputs/apk/release -type f -name "*.apk" | head -n 1)
+          set -e
+
+          APK=$(find android/app/build/outputs/apk/release \
+            -type f -name "*.apk" \
+            | head -n 1)
 
           if [ -z "$APK" ]; then
-            echo "APK was not generated."
+            echo "ERROR: APK was not generated."
             exit 1
           fi
 
