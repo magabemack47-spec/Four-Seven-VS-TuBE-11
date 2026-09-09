@@ -30,20 +30,13 @@ const upload = multer({
     fileSize: 25 * 1024 * 1024
   },
   fileFilter: (req, file, cb) => {
-    const extension =
-      getExtension(file.originalname);
+    const extension = getExtension(file.originalname);
 
-    const allowed = [
-      ".html",
-      ".htm",
-      ".zip"
-    ];
+    const allowed = [".html", ".htm", ".zip"];
 
     if (!allowed.includes(extension)) {
       return cb(
-        new Error(
-          "Only HTML, HTM and ZIP files are allowed."
-        )
+        new Error("Only HTML, HTM and ZIP files are allowed.")
       );
     }
 
@@ -55,6 +48,18 @@ const apkUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 100 * 1024 * 1024
+  },
+  fileFilter: (req, file, cb) => {
+    if (
+      file.mimetype &&
+      file.mimetype !==
+        "application/vnd.android.package-archive" &&
+      !file.originalname.toLowerCase().endsWith(".apk")
+    ) {
+      return cb(new Error("Only APK files are allowed."));
+    }
+
+    cb(null, true);
   }
 });
 
@@ -67,7 +72,7 @@ HEALTH CHECK
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
-    service: "⟦ FOUR × SEVEN ⟧ Builder API",
+    service: "FOUR × SEVEN Builder API",
     version: "2.0.0"
   });
 });
@@ -78,136 +83,110 @@ CREATE BUILD
 ============================================================
 */
 
-app.post(
-  "/api/build",
-  upload.single("project"),
-  async (req, res) => {
+app.post("/api/build", upload.single("project"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        error: "Project file is required."
+      });
+    }
+
+    const appName = String(req.body.appName || "").trim();
+    const packageName = String(req.body.packageName || "").trim();
+    const projectType = String(
+      req.body.projectType || "app"
+    ).trim();
+
+    if (!appName) {
+      return res.status(400).json({
+        error: "App name is required."
+      });
+    }
+
+    if (!isValidPackage(packageName)) {
+      return res.status(400).json({
+        error:
+          "Invalid Android package name. Example: com.fourseven.myapp"
+      });
+    }
+
+    if (
+      projectType !== "app" &&
+      projectType !== "game"
+    ) {
+      return res.status(400).json({
+        error: "Project type must be app or game."
+      });
+    }
+
+    const jobId = crypto.randomUUID();
+
+    const projectBlob = await put(
+      `four-seven/projects/${jobId}/project${getExtension(
+        req.file.originalname
+      )}`,
+      req.file.buffer,
+      {
+        access: "public",
+        addRandomSuffix: false,
+        contentType:
+          req.file.mimetype || "application/octet-stream"
+      }
+    );
+
+    const job = {
+      jobId,
+      appName,
+      packageName,
+      projectType,
+      originalFilename: req.file.originalname,
+      extension: getExtension(req.file.originalname),
+      projectUrl: projectBlob.url,
+      apkUrl: null,
+
+      status: "queued",
+      progress: 15,
+      statusText: "Queued",
+      message:
+        "Waiting for the Android build runner.",
+      log: "",
+
+      createdAt: new Date().toISOString()
+    };
+
+    jobs.set(jobId, job);
+
     try {
-      if (!req.file) {
-        return res.status(400).json({
-          error: "Project file is required."
-        });
-      }
-
-      const appName =
-        String(req.body.appName || "").trim();
-
-      const packageName =
-        String(req.body.packageName || "").trim();
-
-      const projectType =
-        String(
-          req.body.projectType || "app"
-        ).trim();
-
-      if (!appName) {
-        return res.status(400).json({
-          error: "App name is required."
-        });
-      }
-
-      if (!isValidPackage(packageName)) {
-        return res.status(400).json({
-          error:
-            "Invalid Android package name. Example: com.fourseven.myapp"
-        });
-      }
-
-      if (
-        projectType !== "app" &&
-        projectType !== "game"
-      ) {
-        return res.status(400).json({
-          error: "Project type must be app or game."
-        });
-      }
-
-      const jobId =
-        crypto.randomUUID();
-
-      const extension =
-        getExtension(
-          req.file.originalname
-        );
-
-      /*
-      Upload project to Vercel Blob.
-      */
-
-      const projectBlob =
-        await put(
-          `four-seven/projects/${jobId}/project${extension}`,
-          req.file.buffer,
-          {
-            access: "public",
-            addRandomSuffix: false
-          }
-        );
-
-      const job = {
-        jobId,
-        appName,
-        packageName,
-        projectType,
-        originalFilename:
-          req.file.originalname,
-        extension,
-
-        projectUrl:
-          projectBlob.url,
-
-        apkUrl: null,
-
-        status: "queued",
-        progress: 15,
-        statusText: "Queued",
-
-        message:
-          "Waiting for the Android build runner.",
-
-        log: "",
-
-        createdAt:
-          new Date().toISOString()
-      };
+      await triggerGithubBuild(job);
+    } catch (error) {
+      job.status = "failed";
+      job.progress = 100;
+      job.statusText = "Build Failed";
+      job.message = error.message;
+      job.error = error.message;
 
       jobs.set(jobId, job);
 
-      try {
-        await triggerGithubBuild(job);
-      } catch (error) {
-        job.status = "failed";
-        job.progress = 100;
-        job.statusText = "Build Failed";
-        job.message = error.message;
-        job.error = error.message;
-
-        jobs.set(jobId, job);
-
-        return res.status(500).json({
-          error: error.message
-        });
-      }
-
-      res.json({
-        ok: true,
-        jobId,
-        status: job.status
-      });
-    } catch (error) {
-      console.error(
-        "CREATE BUILD ERROR:",
-        error
-      );
-
-      res.status(500).json({
-        error:
-          error.message ||
-          "Could not create build."
+      return res.status(500).json({
+        error: error.message
       });
     }
+
+    res.json({
+      ok: true,
+      jobId,
+      status: job.status
+    });
+  } catch (error) {
+    console.error("CREATE BUILD ERROR:", error);
+
+    res.status(500).json({
+      error:
+        error.message ||
+        "Could not create build."
+    });
   }
-);
+});
 
 /*
 ============================================================
@@ -215,47 +194,40 @@ GET BUILD STATUS
 ============================================================
 */
 
-app.get(
-  "/api/build/:jobId",
-  (req, res) => {
-    const job =
-      jobs.get(req.params.jobId);
+app.get("/api/build/:jobId", (req, res) => {
+  const job = jobs.get(req.params.jobId);
 
-    if (!job) {
-      return res.status(404).json({
-        error: "Build not found."
-      });
-    }
-
-    const response = {
-      jobId: job.jobId,
-      status: job.status,
-      progress: job.progress,
-      statusText: job.statusText,
-      message: job.message,
-      log: job.log || ""
-    };
-
-    if (
-      job.status === "completed" &&
-      job.apkUrl
-    ) {
-      response.downloadUrl =
-        job.apkUrl;
-    }
-
-    if (
-      job.status === "failed"
-    ) {
-      response.error =
-        job.error ||
-        job.message ||
-        "Build failed.";
-    }
-
-    res.json(response);
+  if (!job) {
+    return res.status(404).json({
+      error: "Build not found."
+    });
   }
-);
+
+  const response = {
+    jobId: job.jobId,
+    status: job.status,
+    progress: job.progress,
+    statusText: job.statusText,
+    message: job.message,
+    log: job.log || ""
+  };
+
+  if (
+    job.status === "completed" &&
+    job.apkUrl
+  ) {
+    response.downloadUrl = job.apkUrl;
+  }
+
+  if (job.status === "failed") {
+    response.error =
+      job.error ||
+      job.message ||
+      "Build failed.";
+  }
+
+  res.json(response);
+});
 
 /*
 ============================================================
@@ -263,35 +235,29 @@ DOWNLOAD APK
 ============================================================
 */
 
-app.get(
-  "/api/download/:jobId",
-  (req, res) => {
-    const job =
-      jobs.get(req.params.jobId);
+app.get("/api/download/:jobId", (req, res) => {
+  const job = jobs.get(req.params.jobId);
 
-    if (!job) {
-      return res.status(404).send(
-        "Build not found."
-      );
-    }
-
-    if (
-      job.status !== "completed"
-    ) {
-      return res.status(400).send(
-        "APK is not ready."
-      );
-    }
-
-    if (!job.apkUrl) {
-      return res.status(404).send(
-        "APK file not found."
-      );
-    }
-
-    res.redirect(job.apkUrl);
+  if (!job) {
+    return res.status(404).send(
+      "Build not found."
+    );
   }
-);
+
+  if (job.status !== "completed") {
+    return res.status(400).send(
+      "APK is not ready."
+    );
+  }
+
+  if (!job.apkUrl) {
+    return res.status(404).send(
+      "APK file not found."
+    );
+  }
+
+  res.redirect(job.apkUrl);
+});
 
 /*
 ============================================================
@@ -304,8 +270,9 @@ app.get(
   requireSecret,
   async (req, res) => {
     try {
-      const job =
-        jobs.get(req.params.jobId);
+      const job = jobs.get(
+        req.params.jobId
+      );
 
       if (!job) {
         return res.status(404).send(
@@ -321,7 +288,10 @@ app.get(
 
       res.redirect(job.projectUrl);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "PROJECT DOWNLOAD ERROR:",
+        error
+      );
 
       res.status(500).send(
         "Could not retrieve project."
@@ -340,8 +310,9 @@ app.post(
   "/api/internal/progress/:jobId",
   requireSecret,
   (req, res) => {
-    const job =
-      jobs.get(req.params.jobId);
+    const job = jobs.get(
+      req.params.jobId
+    );
 
     if (!job) {
       return res.status(404).json({
@@ -349,49 +320,38 @@ app.post(
       });
     }
 
-    const progress =
-      Number(req.body.progress);
+    const progress = Number(
+      req.body.progress
+    );
 
-    if (
-      Number.isFinite(progress)
-    ) {
-      job.progress =
-        Math.max(
-          0,
-          Math.min(
-            99,
-            progress
-          )
-        );
+    if (Number.isFinite(progress)) {
+      job.progress = Math.max(
+        0,
+        Math.min(99, progress)
+      );
     }
 
     if (req.body.statusText) {
-      job.statusText =
-        String(
-          req.body.statusText
-        );
+      job.statusText = String(
+        req.body.statusText
+      );
     }
 
     if (req.body.message) {
-      job.message =
-        String(
-          req.body.message
-        );
+      job.message = String(
+        req.body.message
+      );
     }
 
     if (req.body.log) {
-      job.log =
-        String(
-          req.body.log
-        );
+      job.log = String(
+        req.body.log
+      );
     }
 
     job.status = "building";
 
-    jobs.set(
-      job.jobId,
-      job
-    );
+    jobs.set(job.jobId, job);
 
     res.json({
       ok: true
@@ -411,8 +371,9 @@ app.post(
   apkUpload.single("apk"),
   async (req, res) => {
     try {
-      const job =
-        jobs.get(req.params.jobId);
+      const job = jobs.get(
+        req.params.jobId
+      );
 
       if (!job) {
         return res.status(404).json({
@@ -426,49 +387,32 @@ app.post(
         });
       }
 
-      /*
-      Store completed APK in Vercel Blob.
-      */
-
       const safeName =
-        sanitizeFilename(
-          job.appName
-        );
+        sanitizeFilename(job.appName);
 
-      const apkBlob =
-        await put(
-          `four-seven/apks/${job.jobId}/${safeName}.apk`,
-          req.file.buffer,
-          {
-            access: "public",
-            addRandomSuffix: false,
-            contentType:
-              "application/vnd.android.package-archive"
-          }
-        );
+      const apkBlob = await put(
+        `four-seven/apks/${job.jobId}/${safeName}.apk`,
+        req.file.buffer,
+        {
+          access: "public",
+          addRandomSuffix: false,
+          contentType:
+            "application/vnd.android.package-archive"
+        }
+      );
 
-      job.apkUrl =
-        apkBlob.url;
-
-      job.status =
-        "completed";
-
-      job.progress =
-        100;
-
-      job.statusText =
-        "APK Ready";
-
+      job.apkUrl = apkBlob.url;
+      job.status = "completed";
+      job.progress = 100;
+      job.statusText = "APK Ready";
       job.message =
         "Your APK is ready to download.";
 
-      job.log +=
+      job.log =
+        (job.log || "") +
         "\nAPK uploaded successfully.";
 
-      jobs.set(
-        job.jobId,
-        job
-      );
+      jobs.set(job.jobId, job);
 
       res.json({
         ok: true,
@@ -499,8 +443,9 @@ app.post(
   "/api/internal/fail/:jobId",
   requireSecret,
   (req, res) => {
-    const job =
-      jobs.get(req.params.jobId);
+    const job = jobs.get(
+      req.params.jobId
+    );
 
     if (!job) {
       return res.status(404).json({
@@ -508,38 +453,27 @@ app.post(
       });
     }
 
-    job.status =
-      "failed";
+    job.status = "failed";
+    job.progress = 100;
+    job.statusText = "Build Failed";
 
-    job.progress =
-      100;
-
-    job.statusText =
-      "Build Failed";
-
-    job.message =
-      String(
-        req.body.message ||
+    job.message = String(
+      req.body.message ||
         "The Android build failed."
-      );
+    );
 
-    job.error =
-      String(
-        req.body.error ||
+    job.error = String(
+      req.body.error ||
         job.message
-      );
+    );
 
     if (req.body.log) {
-      job.log =
-        String(
-          req.body.log
-        );
+      job.log = String(
+        req.body.log
+      );
     }
 
-    jobs.set(
-      job.jobId,
-      job
-    );
+    jobs.set(job.jobId, job);
 
     res.json({
       ok: true
@@ -587,49 +521,35 @@ async function triggerGithubBuild(job) {
     `${GITHUB_OWNER}/` +
     `${GITHUB_REPO}/dispatches`;
 
-  const response =
-    await fetch(
-      url,
-      {
-        method: "POST",
+  const response = await fetch(url, {
+    method: "POST",
 
-        headers: {
-          Accept:
-            "application/vnd.github+json",
+    headers: {
+      Accept:
+        "application/vnd.github+json",
+      Authorization:
+        `Bearer ${GITHUB_TOKEN}`,
+      "X-GitHub-Api-Version":
+        "2022-11-28",
+      "Content-Type":
+        "application/json"
+    },
 
-          Authorization:
-            `Bearer ${GITHUB_TOKEN}`,
+    body: JSON.stringify({
+      event_type:
+        "four-seven-build",
 
-          "X-GitHub-Api-Version":
-            "2022-11-28",
-
-          "Content-Type":
-            "application/json"
-        },
-
-        body:
-          JSON.stringify({
-            event_type:
-              "four-seven-build",
-
-            client_payload: {
-              jobId:
-                job.jobId,
-
-              appName:
-                job.appName,
-
-              packageName:
-                job.packageName,
-
-              projectType:
-                job.projectType,
-
-              apiBaseUrl
-            }
-          })
+      client_payload: {
+        jobId: job.jobId,
+        appName: job.appName,
+        packageName:
+          job.packageName,
+        projectType:
+          job.projectType,
+        apiBaseUrl
       }
-    );
+    })
+  });
 
   if (!response.ok) {
     const body =
@@ -643,7 +563,7 @@ async function triggerGithubBuild(job) {
 
 /*
 ============================================================
-SECRET PROTECTION
+SECURITY
 ============================================================
 */
 
@@ -672,33 +592,26 @@ function requireSecret(
 
 /*
 ============================================================
-VALIDATION
+VALIDATION HELPERS
 ============================================================
 */
 
-function isValidPackage(
-  value
-) {
-  return /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/
-    .test(value);
+function isValidPackage(value) {
+  return /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(
+    value
+  );
 }
 
-function getExtension(
-  filename
-) {
+function getExtension(filename) {
   const match =
     String(filename)
       .toLowerCase()
       .match(/\.[^.]+$/);
 
-  return match
-    ? match[0]
-    : "";
+  return match ? match[0] : "";
 }
 
-function sanitizeFilename(
-  value
-) {
+function sanitizeFilename(value) {
   return String(value)
     .replace(
       /[^a-zA-Z0-9._-]+/g,
@@ -708,8 +621,7 @@ function sanitizeFilename(
       /^-+|-+$/g,
       ""
     )
-    .slice(0, 50)
-    || "app";
+    .slice(0, 50) || "app";
 }
 
 /*
@@ -739,17 +651,12 @@ LOCAL SERVER
 ============================================================
 */
 
-if (
-  require.main === module
-) {
-  app.listen(
-    PORT,
-    () => {
-      console.log(
-        `⟦ FOUR × SEVEN ⟧ Builder API running on port ${PORT}`
-      );
-    }
-  );
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(
+      `FOUR × SEVEN Builder API running on port ${PORT}`
+    );
+  });
 }
 
 module.exports = app;
