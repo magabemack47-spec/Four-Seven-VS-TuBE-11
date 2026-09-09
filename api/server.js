@@ -3,15 +3,9 @@ const cors = require('cors');
 
 const app = express();
 
-// ============================================================
-// MIDDLEWARE
-// ============================================================
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// ============================================================
-// CONFIGURATION
-// ============================================================
 const CONFIG = {
     OWNER_PASSWORD: process.env.OWNER_PASSWORD || 'FS Four Seven',
     WHATSAPP: process.env.WHATSAPP || '+27 60 222 5117',
@@ -23,9 +17,6 @@ const CONFIG = {
     PUBLIC_API_URL: process.env.PUBLIC_API_URL
 };
 
-// ============================================================
-// HEALTH CHECK
-// ============================================================
 app.get('/api/health', (req, res) => {
     res.json({
         ok: true,
@@ -42,9 +33,6 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// ============================================================
-// TRIGGER GITHUB BUILD
-// ============================================================
 app.post('/api/build', async (req, res) => {
     try {
         const { appName, packageName, projectType, htmlCode } = req.body;
@@ -61,24 +49,21 @@ app.post('/api/build', async (req, res) => {
             return res.status(500).json({ error: 'GitHub token is not configured.' });
         }
 
-        // Generate a unique job ID
         const jobId = 'job_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
 
-        // Create the payload for GitHub Actions
         const payload = {
             event_type: 'four-seven-build',
             client_payload: {
                 jobId: jobId,
                 appName: appName,
-                packageName: packageName || 'com.fsga.' + appName.toLowerCase().replace(/[^a-z0-9]/g, ''),
+                packageName: packageName || 'com.fourseven.' + appName.toLowerCase().replace(/[^a-z0-9]/g, ''),
                 projectType: projectType || 'app',
                 htmlCode: htmlCode,
                 apiBaseUrl: CONFIG.PUBLIC_API_URL || 'https://api-alpha-six-69.vercel.app'
             }
         };
 
-        // Trigger GitHub Actions workflow
-        const url = 'https://api.github.com/repos/' + CONFIG.GITHUB_OWNER + '/' + CONFIG.GITHUB_REPO + '/dispatches';
+        const url = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}/dispatches`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -111,14 +96,10 @@ app.post('/api/build', async (req, res) => {
     }
 });
 
-// ============================================================
-// GET BUILD STATUS
-// ============================================================
 app.get('/api/build/:jobId', (req, res) => {
     const jobId = req.params.jobId;
 
-    // For demo purposes, return a pending status
-    // In production, you'd check the actual status from GitHub
+    // For demo, return pending status
     res.json({
         jobId: jobId,
         status: 'pending',
@@ -128,9 +109,6 @@ app.get('/api/build/:jobId', (req, res) => {
     });
 });
 
-// ============================================================
-// VERIFY OWNER
-// ============================================================
 app.post('/api/verify-owner', (req, res) => {
     const password = req.body.password;
     if (password === CONFIG.OWNER_PASSWORD) {
@@ -140,9 +118,6 @@ app.post('/api/verify-owner', (req, res) => {
     }
 });
 
-// ============================================================
-// GET STATS
-// ============================================================
 app.get('/api/stats', (req, res) => {
     res.json({
         success: true,
@@ -153,9 +128,6 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
-// ============================================================
-// ERROR HANDLER
-// ============================================================
 app.use(function(err, req, res, next) {
     console.error('Error:', err);
     res.status(500).json({
@@ -163,9 +135,6 @@ app.use(function(err, req, res, next) {
     });
 });
 
-// ============================================================
-// START SERVER
-// ============================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, function() {
     console.log('FOUR x SEVEN API running on port ' + PORT);
