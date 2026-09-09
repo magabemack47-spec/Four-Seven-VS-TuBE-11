@@ -1,82 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta attempts=0,maxAttempts=100;
- if(pollInterval)clearInterval(pollInterval);
- pollInterval=setInterval(async()=>{
-  attempts++;
-  try{
-   const response=await fetch(API_URL+'/build/'+encodeURIComponent(jobId));
-   const data=await response.json();
-   if(!response.ok)throw new Error(data.error||'Failed to get status');
-
-   updateBuildStatus(data.statusText||'Building...',Number.isFinite(Number(data.progress))?Number(data.progress):40);
-   if(data.message)buildMessage.textContent=data.message;
-   if(data.log)buildLog.textContent=data.log;
-
-   if(data.status==='completed'){
-    clearInterval(pollInterval);pollInterval=null;isBuilding=false;buildBtn.disabled=false;buildBtn.innerHTML='> BUILD APK';
-    updateBuildStatus('Build Complete',100);buildMessage.textContent='APK ready for download!';showSuccess('Build Complete! Your APK is ready.');
-    const url=data.downloadUrl||API_URL+'/download/'+encodeURIComponent(jobId);
-    downloadBtn.href=url;downloadBtn.classList.remove('hidden');
-    addBuildLog('◆ APK ready for download');
-   }else if(data.status==='failed'){
-    clearInterval(pollInterval);pollInterval=null;isBuilding=false;buildBtn.disabled=false;buildBtn.innerHTML='> BUILD APK';
-    showError(data.error||data.message||'Build failed');updateBuildStatus('Build failed',100);
-   }
-   if(attempts>=maxAttempts){
-    clearInterval(pollInterval);pollInterval=null;isBuilding=false;buildBtn.disabled=false;buildBtn.innerHTML='> BUILD APK';
-    showError('Build timed out after 5 minutes. Please try again.');addBuildLog('◆ Build timed out');
-   }
-  }catch(error){
-   if(attempts>5)addBuildLog('◆ Status check error: '+error.message);
-  }
- },3000);
-}
-
-function updateBuildStatus(title,percent){
- const pct=Math.max(0,Math.min(100,Math.round(Number(percent)||0)));
- buildTitle.textContent=title;buildPercent.textContent=pct+'%';progressBar.style.width=pct+'%';
-}
-function addBuildLog(message){
- buildLog.textContent+='['+new Date().toLocaleTimeString()+'] '+message+'\n';
- buildLog.scrollTop=buildLog.scrollHeight;
-}
-function showError(message){errorBox.textContent='ERROR: '+message;errorBox.classList.remove('hidden');successBox.classList.add('hidden')}
-function showSuccess(message){successBox.textContent='SUCCESS: '+message;successBox.classList.remove('hidden');errorBox.classList.add('hidden')}
-
-async function checkApiStatus(){
- try{
-  const response=await fetch(API_URL+'/health',{cache:'no-store'});
-  if(!response.ok)throw new Error('API not responding');
-  apiStatus.textContent='◆ API ONLINE';apiStatus.className='api-status online';
- }catch(e){
-  apiStatus.textContent='◆ API OFFLINE';apiStatus.className='api-status offline';
- }
-}
-
-document.addEventListener('keydown',e=>{
- if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();buildAPK()}
- if(e.ctrlKey&&e.key.toLowerCase()==='s'){e.preventDefault();saveProject()}
-});
-codeEditor.addEventListener('keydown',e=>{
- if(e.key==='Tab'){e.preventDefault();const s=this.selectionStart,e2=this.selectionEnd}
-});
-codeEditor.addEventListener('keydown',function(e){
- if(e.key==='Tab'){e.preventDefault();const start=this.selectionStart,end=this.selectionEnd;this.value=this.value.substring(0,start)+'  '+this.value.substring(end);this.selectionStart=this.selectionEnd=start+2}
-});
-
-setTimeout(updatePreview,300);
-setTimeout(checkApiStatus,500);
-setInterval(checkApiStatus,60000);
-setInterval(()=>{
- const name=projectNameInput.value.trim()||'MyProject';
- if(codeEditor.value){try{localStorage.setItem('fs_project_'+name,codeEditor.value)}catch(_){}}
-},30000);
-</script>
-</body>
-</html>
-
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#00ff41">
 <title>FOUR x SEVEN - App & Game Builder</title>
@@ -314,4 +239,78 @@ async function buildAPK(){
 }
 
 function startPolling(){
- let 
+ let attempts=0,maxAttempts=100;
+ if(pollInterval)clearInterval(pollInterval);
+ pollInterval=setInterval(async()=>{
+  attempts++;
+  try{
+   const response=await fetch(API_URL+'/build/'+encodeURIComponent(jobId));
+   const data=await response.json();
+   if(!response.ok)throw new Error(data.error||'Failed to get status');
+
+   updateBuildStatus(data.statusText||'Building...',Number.isFinite(Number(data.progress))?Number(data.progress):40);
+   if(data.message)buildMessage.textContent=data.message;
+   if(data.log)buildLog.textContent=data.log;
+
+   if(data.status==='completed'){
+    clearInterval(pollInterval);pollInterval=null;isBuilding=false;buildBtn.disabled=false;buildBtn.innerHTML='> BUILD APK';
+    updateBuildStatus('Build Complete',100);buildMessage.textContent='APK ready for download!';showSuccess('Build Complete! Your APK is ready.');
+    const url=data.downloadUrl||API_URL+'/download/'+encodeURIComponent(jobId);
+    downloadBtn.href=url;downloadBtn.classList.remove('hidden');
+    addBuildLog('◆ APK ready for download');
+   }else if(data.status==='failed'){
+    clearInterval(pollInterval);pollInterval=null;isBuilding=false;buildBtn.disabled=false;buildBtn.innerHTML='> BUILD APK';
+    showError(data.error||data.message||'Build failed');updateBuildStatus('Build failed',100);
+   }
+   if(attempts>=maxAttempts){
+    clearInterval(pollInterval);pollInterval=null;isBuilding=false;buildBtn.disabled=false;buildBtn.innerHTML='> BUILD APK';
+    showError('Build timed out after 5 minutes. Please try again.');addBuildLog('◆ Build timed out');
+   }
+  }catch(error){
+   if(attempts>5)addBuildLog('◆ Status check error: '+error.message);
+  }
+ },3000);
+}
+
+function updateBuildStatus(title,percent){
+ const pct=Math.max(0,Math.min(100,Math.round(Number(percent)||0)));
+ buildTitle.textContent=title;buildPercent.textContent=pct+'%';progressBar.style.width=pct+'%';
+}
+function addBuildLog(message){
+ buildLog.textContent+='['+new Date().toLocaleTimeString()+'] '+message+'\n';
+ buildLog.scrollTop=buildLog.scrollHeight;
+}
+function showError(message){errorBox.textContent='ERROR: '+message;errorBox.classList.remove('hidden');successBox.classList.add('hidden')}
+function showSuccess(message){successBox.textContent='SUCCESS: '+message;successBox.classList.remove('hidden');errorBox.classList.add('hidden')}
+
+async function checkApiStatus(){
+ try{
+  const response=await fetch(API_URL+'/health',{cache:'no-store'});
+  if(!response.ok)throw new Error('API not responding');
+  apiStatus.textContent='◆ API ONLINE';apiStatus.className='api-status online';
+ }catch(e){
+  apiStatus.textContent='◆ API OFFLINE';apiStatus.className='api-status offline';
+ }
+}
+
+document.addEventListener('keydown',e=>{
+ if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();buildAPK()}
+ if(e.ctrlKey&&e.key.toLowerCase()==='s'){e.preventDefault();saveProject()}
+});
+codeEditor.addEventListener('keydown',e=>{
+ if(e.key==='Tab'){e.preventDefault();const s=this.selectionStart,e2=this.selectionEnd}
+});
+codeEditor.addEventListener('keydown',function(e){
+ if(e.key==='Tab'){e.preventDefault();const start=this.selectionStart,end=this.selectionEnd;this.value=this.value.substring(0,start)+'  '+this.value.substring(end);this.selectionStart=this.selectionEnd=start+2}
+});
+
+setTimeout(updatePreview,300);
+setTimeout(checkApiStatus,500);
+setInterval(checkApiStatus,60000);
+setInterval(()=>{
+ const name=projectNameInput.value.trim()||'MyProject';
+ if(codeEditor.value){try{localStorage.setItem('fs_project_'+name,codeEditor.value)}catch(_){}}
+},30000);
+</script>
+</body>
+</html>
