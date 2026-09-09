@@ -1,60 +1,39 @@
 name: Build APK
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
+      html_code:
+        description: 'HTML code to build'
+        required: true
+        default: '<h1>Hello World</h1>'
       app_name:
         description: 'App name'
         required: true
         default: 'MyApp'
+      package_name:
+        description: 'Package name'
+        required: false
+        default: 'com.fourseven.myapp'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Create app directory
+        run: mkdir -p app
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
+      - name: Create index.html
         run: |
-          npm install -g pwabuilder
-          npm install -g http-server
+          echo "${{ github.event.inputs.html_code }}" > app/index.html
 
-      - name: Get app name
-        id: appname
+      - name: Create manifest.json
         run: |
-          if [ "${{ github.event.inputs.app_name }}" != "" ]; then
-            echo "APP_NAME=${{ github.event.inputs.app_name }}" >> $GITHUB_OUTPUT
-          else
-            echo "APP_NAME=MyApp" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create PWA files
-        run: |
-          mkdir -p app_build
-          
-          # Copy index.html if it exists
-          if [ -f "index.html" ]; then
-            cp index.html app_build/index.html
-          else
-            echo '<h1>App</h1>' > app_build/index.html
-          fi
-          
-          # Create manifest.json
-          cat > app_build/manifest.json << EOF
+          cat > app/manifest.json << 'EOF'
           {
-            "name": "${{ steps.appname.outputs.APP_NAME }}",
-            "short_name": "${{ steps.appname.outputs.APP_NAME }}",
-            "description": "App built with FOUR x SEVEN",
+            "name": "${{ github.event.inputs.app_name }}",
+            "short_name": "${{ github.event.inputs.app_name }}",
             "start_url": "/",
             "display": "standalone",
             "background_color": "#0a0a0a",
@@ -64,21 +43,17 @@ jobs:
                 "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2300ff41'/><text x='50' y='70' text-anchor='middle' font-size='60' fill='black'>4</text></svg>",
                 "sizes": "192x192",
                 "type": "image/svg+xml"
-              },
-              {
-                "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2300ff41'/><text x='50' y='70' text-anchor='middle' font-size='60' fill='black'>4</text></svg>",
-                "sizes": "512x512",
-                "type": "image/svg+xml"
               }
             ]
           }
           EOF
-          
-          # Create service worker
-          cat > app_build/sw.js << EOF
+
+      - name: Create service worker
+        run: |
+          cat > app/sw.js << 'EOF'
           self.addEventListener('install', function(e) {
             e.waitUntil(
-              caches.open('app-cache-v1').then(function(cache) {
+              caches.open('app-cache').then(function(cache) {
                 return cache.addAll(['/']);
               })
             );
@@ -92,32 +67,33 @@ jobs:
           });
           EOF
 
-      - name: Build with PWABuilder
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install PWABuilder
+        run: npm install -g pwabuilder
+
+      - name: Build APK with PWABuilder
         run: |
-          cd app_build
-          npx pwabuilder package --platform android --output ./output
+          cd app
+          pwabuilder package --platform android
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: app_build/output/*.apk
+          path: app/output/*.apk
 
-      - name: Upload PWA files
+      - name: Upload HTML file
         uses: actions/upload-artifact@v4
         with:
-          name: pwa-files
-          path: app_build/
+          name: html-file
+          path: app/index.html
 
-      - name: Create release
-        if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v1
+      - name: Upload all files
+        uses: actions/upload-artifact@v4
         with:
-          files: |
-            app_build/output/*.apk
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: app-files
+          path: app/
