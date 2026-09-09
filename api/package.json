@@ -1,7 +1,7 @@
 {
   "name": "four-seven-builder-api",
   "version": "1.0.0",
-  "description": "FOUR × SEVEN Builder API",
+  "description": "FOUR x SEVEN Builder API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
