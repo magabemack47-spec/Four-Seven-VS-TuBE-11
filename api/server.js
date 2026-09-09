@@ -98,8 +98,6 @@ app.post('/api/build', async (req, res) => {
 
 app.get('/api/build/:jobId', (req, res) => {
     const jobId = req.params.jobId;
-
-    // For demo, return pending status
     res.json({
         jobId: jobId,
         status: 'pending',
