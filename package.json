@@ -1,0 +1,19 @@
+{
+  "name": "four-seven-builder",
+  "version": "2.0.0",
+  "private": true,
+  "description": "⟦ FOUR × SEVEN ⟧ Universal App & Game Builder",
+  "main": "index.js",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@vercel/blob": "^1.1.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
+  }
+}
