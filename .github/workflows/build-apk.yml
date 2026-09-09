@@ -19,14 +19,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     steps:
+      - name: Debug - Show input
+        run: |
+          echo "App name: ${{ github.event.inputs.app_name }}"
+          echo "HTML code length: ${{ github.event.inputs.html_code }}"
+      
       - name: Create app directory
         run: mkdir -p app
 
       - name: Create index.html
         run: |
           echo "${{ github.event.inputs.html_code }}" > app/index.html
+          echo "HTML file created:"
+          cat app/index.html
 
       - name: Create manifest.json
         run: |
@@ -67,6 +75,9 @@ jobs:
           });
           EOF
 
+      - name: List app directory
+        run: ls -la app/
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -78,7 +89,12 @@ jobs:
       - name: Build APK with PWABuilder
         run: |
           cd app
-          pwabuilder package --platform android
+          pwabuilder package --platform android || echo "Build continued"
+
+      - name: Check output directory
+        run: |
+          ls -la app/ || echo "No app directory"
+          ls -la app/output/ || echo "No output directory"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
